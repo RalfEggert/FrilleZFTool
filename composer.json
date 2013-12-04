@@ -1,6 +1,6 @@
 {
-    "name": "zendframework/zftool",
-    "description": "Utility module for Zend Framework 2 applications.",
+    "name": "ralfeggert/zftool",
+    "description": "Fork of the Utility module for Zend Framework 2 applications.",
     "keywords": [
         "zf2",
         "tool"
