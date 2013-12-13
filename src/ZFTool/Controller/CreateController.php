@@ -161,7 +161,7 @@ class CreateController extends AbstractActionController
     {
         $console        = $this->getServiceLocator()->get('console');
         $request        = $this->getRequest();
-        $action         = strtolower($request->getParam('name'));
+        $action         = $request->getParam('name');
         $controller     = ucfirst($request->getParam('controllerName'));
         $module         = ucfirst($request->getParam('module'));
         $path           = $request->getParam('path', '.');
