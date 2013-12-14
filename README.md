@@ -56,25 +56,28 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
 ### Module creation
 
-    zf.php create module <name> [<path>]
+    zf.php create module <moduleName> [<path>] [--ignore-conventions|-i]
 
-    <name>              The name of the module to be created
-    <path>              The path to the root folder of the ZF2 application (optional)
+    <moduleName>                The name of the module to be created
+    <path>                      The path to the root folder of the ZF2 application (optional)
+    --ignore-conventions | -i   Ignore coding conventions
 
 ### Controller creation:
-	zf.php create controller <name> <module> [<path>]
+	zf.php create controller <controllerName> <moduleName> [<path>] [--ignore-conventions|-i]
 
-	<name>      The name of the controller to be created
-	<module>    The module in which the controller should be created
-	<path>      The root path of a ZF2 application where to create the controller
+	<controllerName>            The name of the controller to be created
+	<moduleName>                The module in which the controller should be created
+	<path>                      The root path of a ZF2 application where to create the controller
+    --ignore-conventions | -i   Ignore coding conventions
 
 ### Action creation:
-	zf.php create action <name> <controller> <module> [<path>]
+	zf.php create action <actionName> <controllerName> <moduleName> [<path>] [--ignore-conventions|-i]
 
-	<name>          The name of the action to be created
-	<controller>    The name of the controller in which the action should be created
-	<module>        The module containing the controller
-	<path>          The root path of a ZF2 application where to create the action
+	<actionName>                The name of the action to be created
+	<controllerName>            The name of the controller in which the action should be created
+	<moduleName>                The module containing the controller
+	<path>                      The root path of a ZF2 application where to create the action
+    --ignore-conventions | -i   Ignore coding conventions
 
 ### Application configuration
 
