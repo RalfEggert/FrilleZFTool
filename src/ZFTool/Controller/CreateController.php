@@ -61,6 +61,10 @@ class CreateController extends AbstractActionController
         $ignoreConventions = $request->getParam('ignore-conventions', false)
             || $request->getParam('i', false);
 
+        // no config writing
+        $noConfig = $request->getParam('no-config', false)
+            || $request->getParam('n', false);
+
         // check for moduleName param
         if ($request->getParam('moduleName')) {
             $moduleName = $request->getParam('moduleName');
@@ -117,6 +121,9 @@ class CreateController extends AbstractActionController
             // set controller class
             $controllerClass = $controllerName . 'Controller';
 
+            // set controller identifier
+            $controllerKey = $moduleName . '\Controller\\' . $controllerClass;
+
             // set controller file
             $controllerFile = $controllerClass . '.php';
 
@@ -136,6 +143,7 @@ class CreateController extends AbstractActionController
             $this->requestParams->set('controllerName', $controllerName);
             $this->requestParams->set('controllerPath', $controllerPath);
             $this->requestParams->set('controllerClass', $controllerClass);
+            $this->requestParams->set('controllerKey', $controllerKey);
             $this->requestParams->set('controllerFile', $controllerFile);
             $this->requestParams->set('controllerViewPath', $controllerViewPath);
         }
@@ -177,6 +185,13 @@ class CreateController extends AbstractActionController
             $this->requestParams->set('actionViewFile', $actionViewFile);
             $this->requestParams->set('actionViewPath', $actionViewPath);
         }
+
+        // no config writing
+        $noConfig = $request->getParam('no-config', false)
+            || $request->getParam('n', false);
+
+        // set param
+        $this->requestParams->set('noConfig', $noConfig);
     }
 
     /**
@@ -312,10 +327,12 @@ class CreateController extends AbstractActionController
 
         // get needed params
         $path               = $this->requestParams->get('path');
+        $noConfig           = $this->requestParams->get('noConfig');
         $moduleName         = $this->requestParams->get('moduleName');
         $modulePath         = $this->requestParams->get('modulePath');
         $controllerName     = $this->requestParams->get('controllerName');
         $controllerPath     = $this->requestParams->get('controllerPath');
+        $controllerKey      = $this->requestParams->get('controllerKey');
         $controllerClass    = $this->requestParams->get('controllerClass');
         $controllerFile     = $this->requestParams->get('controllerFile');
         $controllerViewPath = $this->requestParams->get('controllerViewPath');
@@ -427,6 +444,95 @@ class CreateController extends AbstractActionController
             $actionViewPath, $actionViewContent
         );
 
+        // check for no configuration writing
+        if (!$noConfig) {
+            // Read module configuration
+            $moduleConfigOld = require $modulePath . '/config/module.config.php';
+            $moduleConfigNew = $moduleConfigOld;
+
+            // check for controllers configuration
+            if (!isset($moduleConfigNew['controllers'])) {
+                $moduleConfigNew['controllers'] = array();
+            }
+
+            // check for controllers invokables configuration
+            if (!isset($moduleConfigNew['controllers']['invokables'])) {
+                $moduleConfigNew['controllers']['invokables'] = array();
+            }
+
+            // check if invokable key is already there
+            if (!in_array(
+                $controllerKey, $moduleConfigNew['controllers']['invokables']
+            )
+            ) {
+                $moduleConfigNew['controllers']['invokables'][$controllerKey]
+                    = $controllerKey;
+            }
+
+            // check for view_manager
+            if (!isset($moduleConfigNew['view_manager'])) {
+                $moduleConfigNew['view_manager'] = array();
+            }
+
+            // check for template_path_stack
+            if (!isset($moduleConfigNew['view_manager']['template_path_stack'])) {
+                $moduleConfigNew['view_manager']['template_path_stack'] = array();
+            }
+
+            // set config dir
+            $configDir = realpath($modulePath . '/config');
+
+            // check for any path
+            if (count($moduleConfigNew['view_manager']['template_path_stack'])
+                > 0
+            ) {
+                // loop through path stack and add path again due to constant resolution problems
+                foreach (
+                    $moduleConfigNew['view_manager']['template_path_stack'] as
+                    $pathKey => $pathKey
+                ) {
+                    if ($configDir . '/../view' == $pathKey) {
+                        $moduleConfigNew['view_manager']['template_path_stack'][$pathKey]
+                            = '__DIR__ . \'/../view\'';
+                    }
+                }
+            } else {
+                $moduleConfigNew['view_manager']['template_path_stack'][]
+                    = '__DIR__ . \'/../view\'';
+            }
+
+            // check for module config updates
+            if ($moduleConfigNew !== $moduleConfigOld) {
+                copy(
+                    $modulePath . '/config/module.config.php',
+                    $modulePath . '/config/module.config.old'
+                );
+
+                $content = <<<EOD
+<?php
+/**
+* Configuration file generated by ZFTool
+* The previous configuration file is stored in module.config.old
+*
+* @see https://github.com/zendframework/ZFTool
+*/
+
+EOD;
+
+                $content .= 'return ' . Skeleton::exportConfig($moduleConfigNew) . ";\n";
+                file_put_contents(
+                    $modulePath . '/config/module.config.php',
+                    $content
+                );
+
+                $this->console->writeLine(
+                    'Module configuration was updated for module "'
+                    . $moduleName . '".',
+                    Color::YELLOW
+                );
+            }
+        }
+
         // write message
         if ($controllerFlag && $viewScriptFlag) {
             $this->console->writeLine(
@@ -458,6 +564,7 @@ class CreateController extends AbstractActionController
         $controllerName     = $this->requestParams->get('controllerName');
         $controllerPath     = $this->requestParams->get('controllerPath');
         $controllerClass    = $this->requestParams->get('controllerClass');
+        $controllerKey      = $this->requestParams->get('controllerKey');
         $controllerFile     = $this->requestParams->get('controllerFile');
         $controllerViewPath = $this->requestParams->get('controllerViewPath');
         $actionName         = $this->requestParams->get('actionName');
@@ -496,9 +603,7 @@ class CreateController extends AbstractActionController
             $controllerPath . $controllerFile,
             true
         );
-        $classReflection = $fileReflection->getClass(
-            $moduleName . '\Controller\\' . $controllerClass
-        );
+        $classReflection = $fileReflection->getClass($controllerKey);
 
         // setup class generator with reflected class
         $code = Generator\ClassGenerator::fromReflection($classReflection);
