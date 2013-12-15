@@ -13,9 +13,6 @@ use ZFTool\Model\Utility;
 use Zend\Console\ColorInterface as Color;
 use Zend\Code\Generator;
 use Zend\Code\Reflection;
-// Comment out
-use Zend\Filter\Word\CamelCaseToDash as CamelCaseToDashFilter;
-// Comment out
 
 /**
  * Class CreateController
@@ -202,12 +199,6 @@ class CreateController extends AbstractActionController
                 'You need to install the OpenSSL extension of PHP'
             );
         }
-// Comment out
-        $console = $this->getServiceLocator()->get('console');
-        $tmpDir  = sys_get_temp_dir();
-        $request = $this->getRequest();
-        $path    = rtrim($request->getParam('path'), '/');
-// Comment out
 
         // setup params
         $this->setupParams();
@@ -500,13 +491,6 @@ class CreateController extends AbstractActionController
             Color::YELLOW
         );
 
-// Comment out
-        $classGenerator = Generator\ClassGenerator::fromReflection($classReflection);
-        $classGenerator->addUse('Zend\Mvc\Controller\AbstractActionController')
-                       ->addUse('Zend\View\Model\ViewModel')
-                       ->setExtendedClass('AbstractActionController');
-// Comment out
-
         // get file and class reflection
         $fileReflection  = new Reflection\FileReflection(
             $controllerPath . $controllerFile,
@@ -579,16 +563,6 @@ class CreateController extends AbstractActionController
             $controllerPath . $controllerFile,
             $file->generate()
         );
-// Comment out
-        if (!file_exists($phtmlPath)) {
-            $contents = sprintf("Module: %s\nController: %s\nAction: %s", $module, $controller, $action);
-            if (file_put_contents($phtmlPath, $contents)) {
-                $console->writeLine(sprintf("Created view script at %s", $phtmlPath), Color::GREEN);
-            } else {
-                $console->writeLine(sprintf("An error occurred when attempting to create view script at location %s", $phtmlPath), Color::RED);
-            }
-        }
-// Comment out
 
         // initialite view script
         $actionViewContent = 'Action "' . $actionName . '", controller "'
