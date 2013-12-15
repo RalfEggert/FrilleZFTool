@@ -83,11 +83,19 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             array('--ignore-conventions | -i', 'Ignore coding conventions'),
 
             'Controller creation:',
+<<<<<<< HEAD
+            'create controller <name> <module> [<path>] [--no-config]' => 'create a controller in module',
+            array('<name>', 'The name of the controller to be created'),
+            array('<module>', 'The module in which the controller should be created'),
+            array('<path>', 'The root path of a ZF2 application where to create the controller'),
+            array('--no-config',      'Prevent that module configuration is updated'),
+=======
             'create controller <controllerName> <moduleName> [<path>] [--ignore-conventions|-i]' => 'create a controller in module',
             array('<controllerName>', 'The name of the controller to be created'),
             array('<moduleName>', 'The module in which the controller should be created'),
             array('<path>', 'The root path of a ZF2 application where to create the controller'),
             array('--ignore-conventions | -i', 'Ignore coding conventions'),
+>>>>>>> feature_params_initialization
 
             'Action creation:',
             'create action <actionName> <controllerName> <moduleName> [<path>] [--ignore-conventions|-i]' => 'create an action in a controller',

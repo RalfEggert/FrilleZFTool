@@ -101,7 +101,11 @@ return array(
                 ),
                 'zftool-create-controller' => array(
                     'options' => array(
+<<<<<<< HEAD
+                        'route'    => 'create controller <name> <module> [<path>] [--no-config]',
+=======
                         'route'    => 'create controller <controllerName> <moduleName> [<path>] [--ignore-conventions|-i]',
+>>>>>>> feature_params_initialization
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'controller',
