@@ -2,17 +2,19 @@
 
 namespace ZFTool\Controller;
 
+use Zend\Code\Generator\Exception\RuntimeException as GeneratorException;
+use Zend\Code\Generator;
+use Zend\Code\Reflection;
 use Zend\Console\Adapter\AdapterInterface;
+use Zend\Console\ColorInterface as Color;
 use Zend\Filter\StaticFilter;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Stdlib\Parameters;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\ConsoleModel;
+use ZFTool\Generator\ModuleGenerator;
 use ZFTool\Model\Skeleton;
 use ZFTool\Model\Utility;
-use Zend\Console\ColorInterface as Color;
-use Zend\Code\Generator;
-use Zend\Code\Reflection;
 
 /**
  * Class CreateController
@@ -27,18 +29,31 @@ class CreateController extends AbstractActionController
     protected $console;
 
     /**
+     * @var ModuleGenerator
+     */
+    protected $moduleGenerator;
+
+    /**
      * @var Parameters
      */
     protected $requestParams;
+
+    /**
+     * @param AdapterInterface $console
+     * @param ModuleGenerator  $moduleGenerator
+     */
+    function __construct(
+        AdapterInterface $console, ModuleGenerator $moduleGenerator
+    ) {
+        $this->moduleGenerator = $moduleGenerator;
+        $this->console         = $console;
+    }
 
     /**
      * Setup request params
      */
     protected function setupParams()
     {
-        // get console adapter
-        $this->console = $this->getServiceLocator()->get('console');
-
         // get request
         $request = $this->getRequest();
 
@@ -139,6 +154,23 @@ class CreateController extends AbstractActionController
             $controllerViewPath = $modulePath . '/view/' . $moduleViewDir . '/'
                 . $controllerViewDir;
 
+            // set action name
+            $actionName = 'Index';
+
+            // set action method
+            $actionMethod = lcfirst($actionName) . 'Action';
+
+            // setup action view file
+            $actionViewFile = StaticFilter::execute(
+                $actionName . '.phtml', 'Word\CamelCaseToDash'
+            );
+            $actionViewFile = StaticFilter::execute(
+                $actionViewFile, 'StringToLower'
+            );
+
+            // set action view path
+            $actionViewPath = $controllerViewPath . '/' . $actionViewFile;
+
             // set params
             $this->requestParams->set('controllerName', $controllerName);
             $this->requestParams->set('controllerPath', $controllerPath);
@@ -146,6 +178,10 @@ class CreateController extends AbstractActionController
             $this->requestParams->set('controllerKey', $controllerKey);
             $this->requestParams->set('controllerFile', $controllerFile);
             $this->requestParams->set('controllerViewPath', $controllerViewPath);
+            $this->requestParams->set('actionName', $actionName);
+            $this->requestParams->set('actionMethod', $actionMethod);
+            $this->requestParams->set('actionViewFile', $actionViewFile);
+            $this->requestParams->set('actionViewPath', $actionViewPath);
         }
 
         // check for actionName param
@@ -242,7 +278,7 @@ class CreateController extends AbstractActionController
             $this->console->writeLine(
                 'Warning: I cannot connect to GitHub, I will use the last '
                 . 'download of ZF2 Skeleton.',
-                Color::GRAY
+                Color::LIGHT_RED
             );
         } else {
             $tmpFile = Skeleton::getTmpFileName($tmpDir, $commit);
@@ -336,6 +372,10 @@ class CreateController extends AbstractActionController
         $controllerClass    = $this->requestParams->get('controllerClass');
         $controllerFile     = $this->requestParams->get('controllerFile');
         $controllerViewPath = $this->requestParams->get('controllerViewPath');
+        $actionName         = $this->requestParams->get('actionName');
+        $actionMethod       = $this->requestParams->get('actionMethod');
+        $actionViewPath     = $this->requestParams->get('actionViewPath');
+        $actionViewFile     = $this->requestParams->get('actionViewFile');
 
         // check for module path and application config
         if (!file_exists($path . '/module')
@@ -362,71 +402,9 @@ class CreateController extends AbstractActionController
             Color::YELLOW
         );
 
-        // create controller class with class generator
-        $code = new Generator\ClassGenerator();
-        $code->setDocBlock(
-            new Generator\DocBlockGenerator(
-                'Class ' . $controllerClass,
-                'Please add a proper description for the ' . $controllerClass,
-                array(
-                    new Generator\DocBlock\Tag(
-                        array(
-                            'name' => 'package',
-                            'description' => $moduleName,
-                        )
-                    ),
-                )
-            )
-        );
-        $code->setNamespaceName($moduleName . '\Controller');
-        $code->addUse('Zend\Mvc\Controller\AbstractActionController');
-        $code->addUse('Zend\View\Model\ViewModel');
-        $code->setName($controllerClass);
-        $code->setExtendedClass('AbstractActionController');
-        $code->addMethod(
-            'indexAction',
-            array(),
-            Generator\MethodGenerator::FLAG_PUBLIC,
-            'return new ViewModel();',
-            new Generator\DocBlockGenerator(
-                'Method indexAction',
-                'Please add a proper description for this action',
-                array(
-                    new Generator\DocBlock\Tag(
-                        array(
-                            'name'        => 'return',
-                            'description' => 'ViewModel',
-                        )
-                    ),
-                )
-            )
-        );
-
-        // create file with file generator
-        $file = new Generator\FileGenerator(
-            array(
-                'classes' => array($code),
-            )
-        );
-        $file->setDocBlock(
-            new Generator\DocBlockGenerator(
-                null,
-                'This file was generated by ZFTool.',
-                array(
-                    new Generator\DocBlock\Tag(
-                        array(
-                            'name' => 'package',
-                            'description' => $moduleName,
-                        )
-                    ),
-                )
-            )
-        );
-
-        // write controller class
-        $controllerFlag = file_put_contents(
-            $controllerPath . $controllerFile,
-            $file->generate()
+        // create controller class
+        $controllerFlag = $this->moduleGenerator->createController(
+            $controllerClass, $moduleName, $controllerPath . $controllerFile
         );
 
         // create dir if not exists
@@ -434,14 +412,9 @@ class CreateController extends AbstractActionController
             mkdir($controllerViewPath, 0777, true);
         }
 
-        // initialite view script
-        $actionViewPath    = $controllerViewPath . '/index.phtml';
-        $actionViewContent = 'Action "index", controller "'
-            . $controllerName . '", module "'. $moduleName .'".';
-
-        // write view script
-        $viewScriptFlag = file_put_contents(
-            $actionViewPath, $actionViewContent
+        // create view script
+        $viewScriptFlag = $this->moduleGenerator->createViewScript(
+            $actionName, $controllerName, $moduleName, $actionViewPath
         );
 
         // check for no configuration writing
@@ -503,32 +476,17 @@ class CreateController extends AbstractActionController
 
             // check for module config updates
             if ($moduleConfigNew !== $moduleConfigOld) {
-                copy(
-                    $modulePath . '/config/module.config.php',
-                    $modulePath . '/config/module.config.old'
+
+                // update module configuration
+                $this->moduleGenerator->updateConfiguration(
+                    $moduleConfigNew, $modulePath . '/config/module.config.php'
                 );
 
-                $content = <<<EOD
-<?php
-/**
-* Configuration file generated by ZFTool
-* The previous configuration file is stored in module.config.old
-*
-* @see https://github.com/zendframework/ZFTool
-*/
-
-EOD;
-
-                $content .= 'return ' . Skeleton::exportConfig($moduleConfigNew) . ";\n";
-                file_put_contents(
-                    $modulePath . '/config/module.config.php',
-                    $content
-                );
-
+                // success message
                 $this->console->writeLine(
                     'Module configuration was updated for module "'
                     . $moduleName . '".',
-                    Color::YELLOW
+                    Color::WHITE
                 );
             }
         }
@@ -570,6 +528,7 @@ EOD;
         $actionName         = $this->requestParams->get('actionName');
         $actionMethod       = $this->requestParams->get('actionMethod');
         $actionViewPath     = $this->requestParams->get('actionViewPath');
+        $actionViewFile     = $this->requestParams->get('actionViewFile');
 
         // check for module path and application config
         if (!file_exists($path . '/module')
@@ -598,23 +557,13 @@ EOD;
             Color::YELLOW
         );
 
-        // get file and class reflection
-        $fileReflection  = new Reflection\FileReflection(
-            $controllerPath . $controllerFile,
-            true
-        );
-        $classReflection = $fileReflection->getClass($controllerKey);
-
-        // setup class generator with reflected class
-        $code = Generator\ClassGenerator::fromReflection($classReflection);
-
-        // fix namespace usage
-        $code->addUse('Zend\Mvc\Controller\AbstractActionController')
-            ->addUse('Zend\View\Model\ViewModel')
-            ->setExtendedClass('AbstractActionController');
-
-        // check for action method
-        if ($code->hasMethod($actionMethod)) {
+        // update controller class
+        try {
+            $controllerFlag = $this->moduleGenerator->updateController(
+                $actionMethod, $controllerKey, $moduleName,
+                $controllerPath . $controllerFile
+            );
+        } catch (GeneratorException $e) {
             return $this->sendError(
                 'The action "' . $actionName
                 . '" already exists in controller "' . $controllerName
@@ -622,60 +571,9 @@ EOD;
             );
         }
 
-        // add new action method
-        $code->addMethod(
-            $actionMethod,
-            array(),
-            Generator\MethodGenerator::FLAG_PUBLIC,
-            'return new ViewModel();',
-            new Generator\DocBlockGenerator(
-                'Method ' . $actionMethod,
-                'Please add a proper description for this action',
-                array(
-                    new Generator\DocBlock\Tag(
-                        array(
-                            'name'        => 'return',
-                            'description' => 'ViewModel',
-                        )
-                    ),
-                )
-            )
-        );
-
-        // create file with file generator
-        $file = new Generator\FileGenerator(
-            array(
-                'classes' => array($code),
-            )
-        );
-        $file->setDocBlock(
-            new Generator\DocBlockGenerator(
-                null,
-                'This file was generated by ZFTool.',
-                array(
-                    new Generator\DocBlock\Tag(
-                        array(
-                            'name' => 'package',
-                            'description' => $moduleName,
-                        )
-                    ),
-                )
-            )
-        );
-
-        // write controller class
-        $controllerFlag = file_put_contents(
-            $controllerPath . $controllerFile,
-            $file->generate()
-        );
-
-        // initialite view script
-        $actionViewContent = 'Action "' . $actionName . '", controller "'
-            . $controllerName . '", module "'. $moduleName .'".';
-
-        // write view script
-        $viewScriptFlag = file_put_contents(
-            $actionViewPath, $actionViewContent
+        // create view script
+        $viewScriptFlag = $this->moduleGenerator->createViewScript(
+            $actionName, $controllerName, $moduleName, $actionViewPath
         );
 
         // write message
@@ -741,39 +639,35 @@ EOD;
         // Create the Module.php
         file_put_contents(
             $modulePath . '/Module.php',
-            Skeleton::getModule($moduleName)
+            ModuleGenerator::getModule($moduleName)
         );
 
         // Create the module.config.php
         file_put_contents(
             $modulePath . '/config/module.config.php',
-            Skeleton::getModuleConfig($moduleName)
+            ModuleGenerator::getModuleConfig($moduleName)
         );
 
         // set file name
-        $applicationConfigFile = $path . '/config/application.config.php';
+        $configFile = $path . '/config/application.config.php';
+
+        // read application configuration
+        $configData = require $configFile;
 
         // Add the module in application.config.php
-        $application = require $applicationConfigFile;
-        if (!in_array($moduleName, $application['modules'])) {
-            $application['modules'][] = $moduleName;
-            copy(
-                $applicationConfigFile,
-                $path . '/config/application.config.old'
+        if (!in_array($moduleName, $configData['modules'])) {
+            $configData['modules'][] = $moduleName;
+
+            // update application configuration
+            $this->moduleGenerator->updateConfiguration(
+                $configData, $configFile
             );
-            $content = <<<EOD
-<?php
-/**
- * Configuration file generated by ZFTool
- * The previous configuration file is stored in application.config.old
- *
- * @see https://github.com/zendframework/ZFTool
- */
 
-EOD;
-
-            $content .= 'return '. Skeleton::exportConfig($application) . ";\n";
-            file_put_contents($applicationConfigFile, $content);
+            // success message
+            $this->console->writeLine(
+                'Application configuration was updated.',
+                Color::WHITE
+            );
         }
 
         // success

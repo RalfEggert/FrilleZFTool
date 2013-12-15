@@ -7,14 +7,22 @@ return array(
     // -----=-----=-----=-----=-----=-----=-----=-----=-----=-----=-----=-----=-----=-----=-----=-----=
 
     'controllers' => array(
+        'factories' => array(
+            'ZFTool\Controller\Create'      => 'ZFTool\Controller\CreateControllerFactory',
+        ),
         'invokables' => array(
             'ZFTool\Controller\Info'        => 'ZFTool\Controller\InfoController',
-            'ZFTool\Controller\Config'        => 'ZFTool\Controller\ConfigController',
+            'ZFTool\Controller\Config'      => 'ZFTool\Controller\ConfigController',
             'ZFTool\Controller\Module'      => 'ZFTool\Controller\ModuleController',
             'ZFTool\Controller\Classmap'    => 'ZFTool\Controller\ClassmapController',
-            'ZFTool\Controller\Create'      => 'ZFTool\Controller\CreateController',
             'ZFTool\Controller\Install'     => 'ZFTool\Controller\InstallController',
             'ZFTool\Controller\Diagnostics' => 'ZFTool\Controller\DiagnosticsController',
+        ),
+    ),
+
+    'service_manager' => array(
+        'invokables' => array(
+            'ZFTool\Generator\ModuleGenerator' => 'ZFTool\Generator\ModuleGenerator',
         ),
     ),
 
