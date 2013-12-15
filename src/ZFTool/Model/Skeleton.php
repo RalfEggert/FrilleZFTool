@@ -87,6 +87,7 @@ class Skeleton
     {
         if (empty(static::$valueGenerator)) {
             static::$valueGenerator = new ValueGenerator();
+            static::$valueGenerator->initEnvironmentConstants();
         }
         static::$valueGenerator->setValue($config);
         static::$valueGenerator->setArrayDepth($indent);
