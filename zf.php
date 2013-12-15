@@ -18,6 +18,8 @@ if (file_exists("$basePath/vendor/autoload.php")) {
     require_once "$basePath/init_autoload.php";
 } elseif (\Phar::running()) {
     require_once __DIR__ . '/vendor/autoload.php';
+} elseif (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
 } else {
     echo 'Error: I cannot find the autoloader of the application.' . PHP_EOL;
     echo "Check if $basePath contains a valid ZF2 application." . PHP_EOL;

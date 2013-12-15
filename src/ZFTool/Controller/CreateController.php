@@ -96,8 +96,8 @@ class CreateController extends AbstractActionController
         $console = $this->getServiceLocator()->get('console');
         $tmpDir  = sys_get_temp_dir();
         $request = $this->getRequest();
-        $name    = $request->getParam('name');
-        $module  = $request->getParam('module');
+        $name    = ucfirst($request->getParam('name'));
+        $module  = ucfirst($request->getParam('module'));
         $path    = $request->getParam('path', '.');
 
         if (!file_exists("$path/module") || !file_exists("$path/config/application.config.php")) {
@@ -111,9 +111,8 @@ class CreateController extends AbstractActionController
             );
         }
 
-        $ucName     = ucfirst($name);
-        $ctrlPath   = $path . '/module/' . $module . '/src/' . $module . '/Controller/' . $ucName.'Controller.php';
-        $controller = $ucName . 'Controller';
+        $ctrlPath   = $path . '/module/' . $module . '/src/' . $module . '/Controller/' . $name.'Controller.php';
+        $controller = $name . 'Controller';
 
         $code = new Generator\ClassGenerator();
         $code->setNamespaceName(ucfirst($module) . '\Controller')
@@ -147,7 +146,7 @@ class CreateController extends AbstractActionController
 
         $phtml = false;
         $phtmlPath = $dir . "/index.phtml";
-        if (file_put_contents($phtmlPath, 'Action "index", controller "'.$ucName.'", module "'.$module.'".')) {
+        if (file_put_contents($phtmlPath, 'Action "index", controller "'.$name.'", module "'.$module.'".')) {
             $phtml = true;
         }
 
@@ -162,13 +161,12 @@ class CreateController extends AbstractActionController
     {
         $console        = $this->getServiceLocator()->get('console');
         $request        = $this->getRequest();
-        $action         = $request->getParam('name');
-        $controller     = $request->getParam('controllerName');
-        $module         = $request->getParam('module');
+        $action         = strtolower($request->getParam('name'));
+        $controller     = ucfirst($request->getParam('controllerName'));
+        $module         = ucfirst($request->getParam('module'));
         $path           = $request->getParam('path', '.');
-        $ucController   = ucfirst($controller);
-        $controllerPath = sprintf('%s/module/%s/src/%s/Controller/%sController.php', $path, $module, $module, $ucController);
-        $class          = sprintf('%s\\Controller\\%sController', $module, $ucController);
+        $controllerPath = sprintf('%s/module/%s/src/%s/Controller/%sController.php', $path, $module, $module, $controller);
+        $class          = sprintf('%s\\Controller\\%sController', $module, $controller);
 
 
         $console->writeLine("Creating action '$action' in controller '$module\\Controller\\$controller'.", Color::YELLOW);
@@ -243,7 +241,7 @@ class CreateController extends AbstractActionController
         $console = $this->getServiceLocator()->get('console');
         $tmpDir  = sys_get_temp_dir();
         $request = $this->getRequest();
-        $name    = $request->getParam('name');
+        $name    = ucfirst($request->getParam('name'));
         $path    = rtrim($request->getParam('path'), '/');
 
         if (empty($path)) {
@@ -264,7 +262,6 @@ class CreateController extends AbstractActionController
         $filter = new CamelCaseToDashFilter();
         $viewfolder = strtolower($filter->filter($name));
 
-        $name = ucfirst($name);
         mkdir("$path/module/$name/config", 0777, true);
         mkdir("$path/module/$name/src/$name/Controller", 0777, true);
         mkdir("$path/module/$name/view/$viewfolder", 0777, true);
