@@ -100,7 +100,7 @@ return array(
                 ),
                 'zftool-create-module' => array(
                     'options' => array(
-                        'route'    => 'create module <moduleName> [<path>] [--ignore-conventions|-i]',
+                        'route'    => 'create module <moduleName> [<path>] [--ignore-conventions|-i] [--no-docblocks|-d]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'module',
@@ -109,7 +109,7 @@ return array(
                 ),
                 'zftool-create-controller' => array(
                     'options' => array(
-                        'route'    => 'create controller <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-config|-n]',
+                        'route'    => 'create controller <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-config|-n] [--no-docblocks|-d]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'controller',
@@ -118,7 +118,7 @@ return array(
                 ),
                 'zftool-create-action' => array(
                     'options' => array(
-                        'route'    => 'create action <actionName> <controllerName> <moduleName> [<path>] [--ignore-conventions|-i]',
+                        'route'    => 'create action <actionName> <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-docblocks|-d]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'method',

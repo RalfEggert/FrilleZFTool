@@ -96,54 +96,6 @@ class Skeleton
     }
 
     /**
-     * Return the Module.php content
-     *
-     * @param  string $name
-     * @return string
-     */
-    public static function getModule($name)
-    {
-        return <<<EOD
-<?php
-namespace $name;
-
-class Module
-{
-    public function getConfig()
-    {
-        return include __DIR__ . '/config/module.config.php';
-    }
-
-    public function getAutoloaderConfig()
-    {
-        return array(
-            'Zend\Loader\StandardAutoloader' => array(
-                'namespaces' => array(
-                    __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
-                ),
-            ),
-        );
-    }
-}
-
-EOD;
-    }
-
-    /**
-     *
-     * @param type $name
-     * @return type
-     */
-    public static function getModuleConfig($name)
-    {
-        return <<<EOD
-<?php
-return array(
-);
-EOD;
-    }
-
-    /**
      * Get stream context for proxy, if necessary
      *
      * @return null|resource

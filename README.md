@@ -56,29 +56,32 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
 ### Module creation
 
-    zf.php create module <moduleName> [<path>] [--ignore-conventions|-i]
+    zf.php create module <moduleName> [<path>] [--ignore-conventions|-i] [--no-docblocks|-d]
 
     <moduleName>                The name of the module to be created
     <path>                      The path to the root folder of the ZF2 application (optional)
     --ignore-conventions | -i   Ignore coding conventions
+    --no-docblocks | -d         Prevent the doc block generation
 
 ### Controller creation:
-	zf.php create controller <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-config|-n]
+	zf.php create controller <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-config|-n] [--no-docblocks|-d]
 
 	<controllerName>            The name of the controller to be created
 	<moduleName>                The module in which the controller should be created
 	<path>                      The root path of a ZF2 application where to create the controller
     --ignore-conventions | -i   Ignore coding conventions
     --no-config | -n            Prevent that module configuration is updated
+    --no-docblocks | -d         Prevent the doc block generation
 
 ### Action creation:
-	zf.php create action <actionName> <controllerName> <moduleName> [<path>] [--ignore-conventions|-i]
+	zf.php create action <actionName> <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-docblocks|-d]
 
 	<actionName>                The name of the action to be created
 	<controllerName>            The name of the controller in which the action should be created
 	<moduleName>                The module containing the controller
 	<path>                      The root path of a ZF2 application where to create the action
     --ignore-conventions | -i   Ignore coding conventions
+    --no-docblocks | -d         Prevent the doc block generation
 
 ### Application configuration
 

@@ -80,6 +80,13 @@ class CreateController extends AbstractActionController
         $noConfig = $request->getParam('no-config', false)
             || $request->getParam('n', false);
 
+        // no docblock
+        $noDocBlocks = $request->getParam('no-docblocks', false)
+            || $request->getParam('d', false);
+
+        // configure module generator
+        $this->moduleGenerator->setCreateDocBlocks(false === $noDocBlocks);
+
         // check for moduleName param
         if ($request->getParam('moduleName')) {
             $moduleName = $request->getParam('moduleName');
@@ -637,15 +644,14 @@ class CreateController extends AbstractActionController
         mkdir($modulePath . '/view/' . $moduleViewDir, 0777, true);
 
         // Create the Module.php
-        file_put_contents(
-            $modulePath . '/Module.php',
-            ModuleGenerator::getModule($moduleName)
+        $this->moduleGenerator->createModule(
+            $moduleName, $modulePath . '/Module.php'
         );
 
         // Create the module.config.php
-        file_put_contents(
-            $modulePath . '/config/module.config.php',
-            ModuleGenerator::getModuleConfig($moduleName)
+        $this->moduleGenerator->createConfiguration(
+            array(),
+            $modulePath . '/config/module.config.php'
         );
 
         // set file name
