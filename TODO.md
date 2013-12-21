@@ -3,7 +3,7 @@
 
 - Generate all code with Zend\Code          [DONE]
 - Make doc block generation optional        [DONE]
-- Add basic routing (optional)              [NOT STARTED YET]
+- Add basic routing (optional)              [DONE]
 - Add configuration for classmap generation [NOT STARTED YET]
 - Refactor CreateController more            [NOT STARTED YET]
 - Refactor other controller                 [NOT STARTED YET]
