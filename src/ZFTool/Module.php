@@ -101,6 +101,12 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             array('--ignore-conventions | -i', 'Ignore coding conventions'),
             array('--no-docblocks | -d', 'Prevent the doc block generation'),
 
+            'Route creation:',
+            'create routing <moduleName> [<path>] [--single-route|-s]' => 'create the routing for a module',
+            array('<moduleName>', 'The module containing the controller'),
+            array('<path>', 'The root path of a ZF2 application where to create the action'),
+            array('--single-route | -s', 'Create a single standard route for the module'),
+
             'Classmap generator:',
             'classmap generate <directory> <classmap file> [--append|-a] [--overwrite|-w]' => '',
             array('<directory>',        'The directory to scan for PHP classes (use "." to use current directory)'),

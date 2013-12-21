@@ -83,6 +83,13 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
     --ignore-conventions | -i   Ignore coding conventions
     --no-docblocks | -d         Prevent the doc block generation
 
+### Routing creation:
+	zf.php create routing <moduleName> [<path>] [--single-route|-s]
+
+	<moduleName>                The module containing the controller
+	<path>                      The root path of a ZF2 application where to create the action
+    --single-route | -s         Create a single standard route for the module
+
 ### Application configuration
 
     zf.php config list                  list all configuration option

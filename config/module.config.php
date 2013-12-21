@@ -125,6 +125,15 @@ return array(
                         ),
                     ),
                 ),
+                'zftool-create-routing' => array(
+                    'options' => array(
+                        'route'    => 'create routing <moduleName> [<path>] [--single-route|-s]',
+                        'defaults' => array(
+                            'controller' => 'ZFTool\Controller\Create',
+                            'action'     => 'routing',
+                        ),
+                    ),
+                ),
                 'zftool-install-zf' => array(
                     'options' => array(
                         'route'    => 'install zf <path> [<version>]',

@@ -76,10 +76,6 @@ class CreateController extends AbstractActionController
         $ignoreConventions = $request->getParam('ignore-conventions', false)
             || $request->getParam('i', false);
 
-        // no config writing
-        $noConfig = $request->getParam('no-config', false)
-            || $request->getParam('n', false);
-
         // no docblock
         $noDocBlocks = $request->getParam('no-docblocks', false)
             || $request->getParam('d', false);
@@ -113,10 +109,18 @@ class CreateController extends AbstractActionController
             );
             $moduleViewDir = StaticFilter::execute($moduleViewDir, 'StringToLower');
 
+            // setup module route
+            $moduleRoute = '/' . $moduleName;
+            $moduleRoute = StaticFilter::execute(
+                $moduleRoute, 'Word\CamelCaseToDash'
+            );
+            $moduleRoute = StaticFilter::execute($moduleRoute, 'StringToLower');
+
             // set params
             $this->requestParams->set('moduleName', $moduleName);
             $this->requestParams->set('modulePath', $modulePath);
             $this->requestParams->set('moduleViewDir', $moduleViewDir);
+            $this->requestParams->set('moduleRoute', $moduleRoute);
         }
 
         // check for controllerName param
@@ -144,7 +148,7 @@ class CreateController extends AbstractActionController
             $controllerClass = $controllerName . 'Controller';
 
             // set controller identifier
-            $controllerKey = $moduleName . '\Controller\\' . $controllerClass;
+            $controllerKey = $moduleName . '\Controller\\' . $controllerName;
 
             // set controller file
             $controllerFile = $controllerClass . '.php';
@@ -233,8 +237,13 @@ class CreateController extends AbstractActionController
         $noConfig = $request->getParam('no-config', false)
             || $request->getParam('n', false);
 
-        // set param
+        // single route
+        $singleRoute = $request->getParam('single-route', false)
+            || $request->getParam('s', false);
+
+        // set params
         $this->requestParams->set('noConfig', $noConfig);
+        $this->requestParams->set('singleRoute', $singleRoute);
     }
 
     /**
@@ -446,7 +455,7 @@ class CreateController extends AbstractActionController
             )
             ) {
                 $moduleConfigNew['controllers']['invokables'][$controllerKey]
-                    = $controllerKey;
+                    = $controllerKey . 'Controller';
             }
 
             // check for view_manager
@@ -466,7 +475,8 @@ class CreateController extends AbstractActionController
             if (count($moduleConfigNew['view_manager']['template_path_stack'])
                 > 0
             ) {
-                // loop through path stack and add path again due to constant resolution problems
+                // loop through path stack and add path again due to
+                // constant resolution problems
                 foreach (
                     $moduleConfigNew['view_manager']['template_path_stack'] as
                     $pathKey => $pathKey
@@ -686,6 +696,223 @@ class CreateController extends AbstractActionController
             $this->console->writeLine(
                 'The module "' . $moduleName . '" has been created in ' . $path,
                 Color::GREEN
+            );
+        }
+    }
+
+    /**
+     * Create the routing for a module
+     *
+     * @return ConsoleModel
+     */
+    public function routingAction()
+    {
+        // setup params
+        $this->setupParams();
+
+        // get needed params
+        $path               = $this->requestParams->get('path');
+        $singleRoute        = $this->requestParams->get('singleRoute');
+        $moduleName         = $this->requestParams->get('moduleName');
+        $modulePath         = $this->requestParams->get('modulePath');
+        $moduleRoute        = $this->requestParams->get('moduleRoute');
+
+        // check for module path and application config
+        if (!file_exists($path . '/module')
+            || !file_exists($path . '/config/application.config.php')
+        ) {
+            return $this->sendError(
+                'The path ' . $path . ' doesn\'t contain a ZF2 application. '
+                . 'I cannot create the routing here.'
+            );
+        }
+
+        // check if module exists
+        if (!file_exists($modulePath)) {
+            return $this->sendError(
+                'The module ' . $moduleName . ' does not exist.'
+            );
+        }
+
+        // write start message
+        $this->console->writeLine(
+            'Creating routing in module "' . $moduleName . '".',
+            Color::YELLOW
+        );
+
+        // Read module configuration
+        $moduleConfigOld = require $modulePath . '/config/module.config.php';
+        $moduleConfigNew = $moduleConfigOld;
+
+        // check if controller exists
+        if (!isset($moduleConfigNew['controllers'])
+            || count($moduleConfigNew['controllers']) == 0
+        ) {
+            return $this->sendError(
+                'No controller exist in the module ' . $moduleName . '.'
+            );
+        }
+
+        // check for router
+        if (!isset($moduleConfigNew['router'])) {
+            $moduleConfigNew['router'] = array();
+        }
+
+        // reset all routes
+        $moduleConfigNew['router']['routes'] = array();
+
+        // set controller namespace
+        $controllerNamespace = $moduleName . '\Controller';
+
+        // set child routes
+        $childRoutes = array();
+
+        // check for single route
+        if ($singleRoute) {
+            // create child routes
+            $childRoutes = array(
+                'controller-action' => array(
+                    'type'    => 'segment',
+                    'options' => array(
+                        'route'    => '/:controller[/:action[/:id]]',
+                        'constraints' => array(
+                            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+                            'id'         => '[0-9_-]*',
+                        ),
+                    ),
+                ),
+            );
+        } else {
+            // set controller keys
+            $controllerKeys = array();
+
+            // merge controller keys
+            foreach ($moduleConfigNew['controllers'] as $group) {
+                $controllerKeys = array_merge(
+                    $controllerKeys,
+                    array_keys($group)
+                );
+            }
+
+            // merge controller keys
+            foreach ($controllerKeys as $controllerName) {
+                // clear leading namespace
+                if (stripos($controllerName, $controllerNamespace) === 0) {
+                    $controllerName = str_replace(
+                        $controllerNamespace . '\\', '', $controllerName
+                    );
+                }
+
+                // set routing key
+                $routingKey = strtolower($controllerName);
+                $routingKey = str_replace('controller', '', $routingKey);
+
+                // set controller route
+                $controllerRoute = '/' . strtolower($controllerName);
+
+                // create route
+                $childRoutes[$routingKey] = array(
+                    'type' => 'segment',
+                    'options' => array(
+                        'route'    => $controllerRoute . '[/:action[/:id]]',
+                        'defaults' => array(
+                            'controller' => $controllerName,
+                        ),
+                        'constraints' => array(
+                            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+                            'id'         => '[0-9_-]*',
+                        ),
+                    ),
+                );
+            }
+        }
+
+        // set controller keys
+        $controllerKeys = array();
+
+        // merge controller keys
+        foreach ($moduleConfigNew['controllers'] as $group) {
+            $controllerKeys = array_merge(
+                $controllerKeys,
+                array_keys($group)
+            );
+        }
+
+        // identify default controller
+        if (count($controllerKeys) == 1) {
+            $defaultController = reset($controllerKeys);
+        } else {
+            $indexController = $controllerNamespace . '\Index';
+            $moduleController = $controllerNamespace . '\\' . $moduleName;
+
+            if (in_array($indexController, $controllerKeys)) {
+                $defaultController = $indexController;
+            } elseif (in_array($moduleController, $controllerKeys)) {
+                $defaultController = $moduleController;
+            } else {
+                $defaultController = reset($controllerKeys);
+            }
+        }
+
+        // clear leading namespace
+        if (stripos($defaultController, $controllerNamespace) === 0) {
+            $defaultController = str_replace(
+                $controllerNamespace . '\\', '', $defaultController
+            );
+        }
+
+        // set routing key
+        $routingKey = strtolower($moduleName);
+
+        // create route
+        $moduleConfigNew['router']['routes'] = array(
+            $routingKey => array(
+                'type' => 'Literal',
+                'options' => array(
+                    'route'    => $moduleRoute,
+                    'defaults' => array(
+                        '__NAMESPACE__' => $controllerNamespace,
+                        'controller' => $defaultController,
+                        'action'     => 'index',
+                    ),
+                ),
+                'may_terminate' => true,
+                'child_routes' => $childRoutes,
+            )
+        );
+
+        // set config flag
+        $configFlag = false;
+
+        // check for module config updates
+        if ($moduleConfigNew !== $moduleConfigOld) {
+
+            // update module configuration
+            $configFlag = $this->moduleGenerator->updateConfiguration(
+                $moduleConfigNew, $modulePath . '/config/module.config.php'
+            );
+
+            // success message
+            $this->console->writeLine(
+                'Module configuration was updated for module "'
+                . $moduleName . '".',
+                Color::WHITE
+            );
+        }
+
+        // write message
+        if ($configFlag) {
+            $this->console->writeLine(
+                'The routing has been configured in module "'
+                . $moduleName . '".',
+                Color::GREEN
+            );
+        } else {
+            $this->console->writeLine(
+                'The routing has not been changed in module "'
+                . $moduleName . '".',
+                Color::YELLOW
             );
         }
     }

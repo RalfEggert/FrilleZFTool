@@ -452,7 +452,9 @@ class ModuleGenerator
             $controllerFilePath,
             true
         );
-        $classReflection = $fileReflection->getClass($controllerKey);
+        $classReflection = $fileReflection->getClass(
+            $controllerKey . 'Controller'
+        );
 
         // setup class generator with reflected class
         $code = ClassGenerator::fromReflection($classReflection);
