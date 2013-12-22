@@ -7,14 +7,15 @@ use Zend\Code\Generator;
 use Zend\Code\Reflection;
 use Zend\Console\Adapter\AdapterInterface;
 use Zend\Console\ColorInterface as Color;
+use Zend\Stdlib\Parameters;
 use Zend\Filter\StaticFilter;
 use Zend\Mvc\Controller\AbstractActionController;
-use Zend\Stdlib\Parameters;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\ConsoleModel;
 use ZFTool\Generator\ModuleGenerator;
 use ZFTool\Model\Skeleton;
 use ZFTool\Model\Utility;
+use ZFTool\Options\RequestOptions;
 
 /**
  * Class CreateController
@@ -34,216 +35,28 @@ class CreateController extends AbstractActionController
     protected $moduleGenerator;
 
     /**
-     * @var Parameters
-     */
-    protected $requestParams;
-
-    /**
      * @param AdapterInterface $console
      * @param ModuleGenerator  $moduleGenerator
      */
     function __construct(
         AdapterInterface $console, ModuleGenerator $moduleGenerator
     ) {
+        // setup dependencies
         $this->moduleGenerator = $moduleGenerator;
         $this->console         = $console;
     }
 
+
     /**
-     * Setup request params
+     * Convenience method to support IDE autocompletion
+     *
+     * @param Parameters $parameters
+     *
+     * @return RequestOptions
      */
-    protected function setupParams()
+    protected function requestOptions(Parameters $parameters = null)
     {
-        // get request
-        $request = $this->getRequest();
-
-        // set path
-        $path = rtrim($request->getParam('path'), '/');
-
-        if (empty($path)) {
-            $path = '.';
-        }
-
-        // initialize requestParams
-        $this->requestParams = new Parameters(
-            array(
-                'tmpDir' => sys_get_temp_dir(),
-                'path'   => $path,
-            )
-        );
-
-        // ignore conventions
-        $ignoreConventions = $request->getParam('ignore-conventions', false)
-            || $request->getParam('i', false);
-
-        // no docblock
-        $noDocBlocks = $request->getParam('no-docblocks', false)
-            || $request->getParam('d', false);
-
-        // configure module generator
-        $this->moduleGenerator->setCreateDocBlocks(false === $noDocBlocks);
-
-        // check for moduleName param
-        if ($request->getParam('moduleName')) {
-            $moduleName = $request->getParam('moduleName');
-
-            if (!$ignoreConventions) {
-                $moduleName = StaticFilter::execute(
-                    $moduleName, 'Word\UnderscoreToCamelCase'
-                );
-                $moduleName = StaticFilter::execute(
-                    $moduleName, 'Word\DashToCamelCase'
-                );
-            } else {
-                $moduleName = StaticFilter::execute(
-                    $moduleName, 'Word\DashToUnderscore'
-                );
-            }
-
-            // set path for new module
-            $modulePath = $path . '/module/' . $moduleName;
-
-            // setup module view dir
-            $moduleViewDir = StaticFilter::execute(
-                $moduleName, 'Word\CamelCaseToDash'
-            );
-            $moduleViewDir = StaticFilter::execute($moduleViewDir, 'StringToLower');
-
-            // setup module route
-            $moduleRoute = '/' . $moduleName;
-            $moduleRoute = StaticFilter::execute(
-                $moduleRoute, 'Word\CamelCaseToDash'
-            );
-            $moduleRoute = StaticFilter::execute($moduleRoute, 'StringToLower');
-
-            // set params
-            $this->requestParams->set('moduleName', $moduleName);
-            $this->requestParams->set('modulePath', $modulePath);
-            $this->requestParams->set('moduleViewDir', $moduleViewDir);
-            $this->requestParams->set('moduleRoute', $moduleRoute);
-        }
-
-        // check for controllerName param
-        if ($request->getParam('controllerName')) {
-            $controllerName = $request->getParam('controllerName');
-
-            if (!$ignoreConventions) {
-                $controllerName = StaticFilter::execute(
-                    $controllerName, 'Word\UnderscoreToCamelCase'
-                );
-                $controllerName = StaticFilter::execute(
-                    $controllerName, 'Word\DashToCamelCase'
-                );
-            } else {
-                $controllerName = StaticFilter::execute(
-                    $controllerName, 'Word\DashToUnderscore'
-                );
-            }
-
-            // set controller path
-            $controllerPath  = $modulePath . '/src/'
-                . $moduleName . '/Controller/';
-
-            // set controller class
-            $controllerClass = $controllerName . 'Controller';
-
-            // set controller identifier
-            $controllerKey = $moduleName . '\Controller\\' . $controllerName;
-
-            // set controller file
-            $controllerFile = $controllerClass . '.php';
-
-            // setup controller view dir
-            $controllerViewDir = StaticFilter::execute(
-                $controllerName, 'Word\CamelCaseToDash'
-            );
-            $controllerViewDir = StaticFilter::execute(
-                $controllerViewDir, 'StringToLower'
-            );
-
-            // set controller view path
-            $controllerViewPath = $modulePath . '/view/' . $moduleViewDir . '/'
-                . $controllerViewDir;
-
-            // set action name
-            $actionName = 'Index';
-
-            // set action method
-            $actionMethod = lcfirst($actionName) . 'Action';
-
-            // setup action view file
-            $actionViewFile = StaticFilter::execute(
-                $actionName . '.phtml', 'Word\CamelCaseToDash'
-            );
-            $actionViewFile = StaticFilter::execute(
-                $actionViewFile, 'StringToLower'
-            );
-
-            // set action view path
-            $actionViewPath = $controllerViewPath . '/' . $actionViewFile;
-
-            // set params
-            $this->requestParams->set('controllerName', $controllerName);
-            $this->requestParams->set('controllerPath', $controllerPath);
-            $this->requestParams->set('controllerClass', $controllerClass);
-            $this->requestParams->set('controllerKey', $controllerKey);
-            $this->requestParams->set('controllerFile', $controllerFile);
-            $this->requestParams->set('controllerViewPath', $controllerViewPath);
-            $this->requestParams->set('actionName', $actionName);
-            $this->requestParams->set('actionMethod', $actionMethod);
-            $this->requestParams->set('actionViewFile', $actionViewFile);
-            $this->requestParams->set('actionViewPath', $actionViewPath);
-        }
-
-        // check for actionName param
-        if ($request->getParam('actionName')) {
-            $actionName = $request->getParam('actionName');
-
-            if (!$ignoreConventions) {
-                $actionName = StaticFilter::execute(
-                    $actionName, 'Word\UnderScoreToDash'
-                );
-                $actionName = StaticFilter::execute(
-                    $actionName, 'Word\DashToCamelCase'
-                );
-            } else {
-                $actionName = StaticFilter::execute(
-                    $actionName, 'Word\DashToUnderscore'
-                );
-            }
-
-            // set action method
-            $actionMethod = lcfirst($actionName) . 'Action';
-
-            // setup action view file
-            $actionViewFile = StaticFilter::execute(
-                $actionName . '.phtml', 'Word\CamelCaseToDash'
-            );
-            $actionViewFile = StaticFilter::execute(
-                $actionViewFile, 'StringToLower'
-            );
-
-            // set action view path
-            $actionViewPath = $controllerViewPath . '/' . $actionViewFile;
-
-            // set params
-            $this->requestParams->set('actionName', $actionName);
-            $this->requestParams->set('actionMethod', $actionMethod);
-            $this->requestParams->set('actionViewFile', $actionViewFile);
-            $this->requestParams->set('actionViewPath', $actionViewPath);
-        }
-
-        // no config writing
-        $noConfig = $request->getParam('no-config', false)
-            || $request->getParam('n', false);
-
-        // single route
-        $singleRoute = $request->getParam('single-route', false)
-            || $request->getParam('s', false);
-
-        // set params
-        $this->requestParams->set('noConfig', $noConfig);
-        $this->requestParams->set('singleRoute', $singleRoute);
+        return $this->plugin('requestOptions')->__invoke($parameters);
     }
 
     /**
@@ -253,6 +66,9 @@ class CreateController extends AbstractActionController
      */
     public function projectAction()
     {
+        // initialize request options
+        $this->requestOptions($this->getRequest()->getParams());
+
         // check for zip extension
         if (!extension_loaded('zip')) {
             return $this->sendError(
@@ -267,12 +83,9 @@ class CreateController extends AbstractActionController
             );
         }
 
-        // setup params
-        $this->setupParams();
-
-        // get needed params
-        $path   = $this->requestParams->get('path');
-        $tmpDir = $this->requestParams->get('tmpDir');
+        // get needed options to shorten code
+        $path   = $this->requestOptions()->getPath();
+        $tmpDir = $this->requestOptions()->getTmpDir();
 
         // check if path exists
         if (file_exists($path)) {
@@ -374,24 +187,29 @@ class CreateController extends AbstractActionController
      */
     public function controllerAction()
     {
-        // setup params
-        $this->setupParams();
+        // initialize request options
+        $this->requestOptions($this->getRequest()->getParams());
 
-        // get needed params
-        $path               = $this->requestParams->get('path');
-        $noConfig           = $this->requestParams->get('noConfig');
-        $moduleName         = $this->requestParams->get('moduleName');
-        $modulePath         = $this->requestParams->get('modulePath');
-        $controllerName     = $this->requestParams->get('controllerName');
-        $controllerPath     = $this->requestParams->get('controllerPath');
-        $controllerKey      = $this->requestParams->get('controllerKey');
-        $controllerClass    = $this->requestParams->get('controllerClass');
-        $controllerFile     = $this->requestParams->get('controllerFile');
-        $controllerViewPath = $this->requestParams->get('controllerViewPath');
-        $actionName         = $this->requestParams->get('actionName');
-        $actionMethod       = $this->requestParams->get('actionMethod');
-        $actionViewPath     = $this->requestParams->get('actionViewPath');
-        $actionViewFile     = $this->requestParams->get('actionViewFile');
+        // get needed options to shorten code
+        $path               = $this->requestOptions()->getPath();
+        $flagNoConfig       = $this->requestOptions()->getFlagNoConfig();
+        $moduleName         = $this->requestOptions()->getModuleName();
+        $modulePath         = $this->requestOptions()->getModulePath();
+        $controllerName     = $this->requestOptions()->getControllerName();
+        $controllerPath     = $this->requestOptions()->getControllerPath();
+        $controllerKey      = $this->requestOptions()->getControllerKey();
+        $controllerClass    = $this->requestOptions()->getControllerClass();
+        $controllerFile     = $this->requestOptions()->getControllerFile();
+        $controllerViewPath = $this->requestOptions()->getControllerViewPath();
+        $actionName         = $this->requestOptions()->getActionName();
+        $actionMethod       = $this->requestOptions()->getActionMethod();
+        $actionViewPath     = $this->requestOptions()->getActionViewPath();
+        $actionViewFile     = $this->requestOptions()->getActionViewFile();
+
+        // change doc block flag
+        $this->moduleGenerator->setCreateDocBlocks(
+            false === $this->requestOptions()->getFlagNoDocBlocks() 
+        );
 
         // check for module path and application config
         if (!file_exists($path . '/module')
@@ -434,7 +252,7 @@ class CreateController extends AbstractActionController
         );
 
         // check for no configuration writing
-        if (!$noConfig) {
+        if (!$flagNoConfig) {
             // Read module configuration
             $moduleConfigOld = require $modulePath . '/config/module.config.php';
             $moduleConfigNew = $moduleConfigOld;
@@ -530,22 +348,27 @@ class CreateController extends AbstractActionController
      */
     public function methodAction()
     {
-        // setup params
-        $this->setupParams();
+        // initialize request options
+        $this->requestOptions($this->getRequest()->getParams());
 
-        // get needed params
-        $path               = $this->requestParams->get('path');
-        $moduleName         = $this->requestParams->get('moduleName');
-        $controllerName     = $this->requestParams->get('controllerName');
-        $controllerPath     = $this->requestParams->get('controllerPath');
-        $controllerClass    = $this->requestParams->get('controllerClass');
-        $controllerKey      = $this->requestParams->get('controllerKey');
-        $controllerFile     = $this->requestParams->get('controllerFile');
-        $controllerViewPath = $this->requestParams->get('controllerViewPath');
-        $actionName         = $this->requestParams->get('actionName');
-        $actionMethod       = $this->requestParams->get('actionMethod');
-        $actionViewPath     = $this->requestParams->get('actionViewPath');
-        $actionViewFile     = $this->requestParams->get('actionViewFile');
+        // get needed options to shorten code
+        $path               = $this->requestOptions()->getPath();
+        $moduleName         = $this->requestOptions()->getModuleName();
+        $controllerName     = $this->requestOptions()->getControllerName();
+        $controllerPath     = $this->requestOptions()->getControllerPath();
+        $controllerClass    = $this->requestOptions()->getControllerClass();
+        $controllerKey      = $this->requestOptions()->getControllerKey();
+        $controllerFile     = $this->requestOptions()->getControllerFile();
+        $controllerViewPath = $this->requestOptions()->getControllerViewPath();
+        $actionName         = $this->requestOptions()->getActionName();
+        $actionMethod       = $this->requestOptions()->getActionMethod();
+        $actionViewPath     = $this->requestOptions()->getActionViewPath();
+        $actionViewFile     = $this->requestOptions()->getActionViewFile();
+
+        // change doc block flag
+        $this->moduleGenerator->setCreateDocBlocks(
+            false === $this->requestOptions()->getFlagNoDocBlocks() 
+        );
 
         // check for module path and application config
         if (!file_exists($path . '/module')
@@ -616,14 +439,19 @@ class CreateController extends AbstractActionController
      */
     public function moduleAction()
     {
-        // setup params
-        $this->setupParams();
+        // initialize request options
+        $this->requestOptions($this->getRequest()->getParams());
 
-        // get needed params
-        $path          = $this->requestParams->get('path');
-        $moduleName    = $this->requestParams->get('moduleName');
-        $modulePath    = $this->requestParams->get('modulePath');
-        $moduleViewDir = $this->requestParams->get('moduleViewDir');
+        // get needed options to shorten code
+        $path          = $this->requestOptions()->getPath();
+        $moduleName    = $this->requestOptions()->getModuleName();
+        $modulePath    = $this->requestOptions()->getModulePath();
+        $moduleViewDir = $this->requestOptions()->getModuleViewDir();
+
+        // change doc block flag
+        $this->moduleGenerator->setCreateDocBlocks(
+            false === $this->requestOptions()->getFlagNoDocBlocks() 
+        );
 
         // check for module path and application config
         if (!file_exists($path . '/module')
@@ -707,15 +535,15 @@ class CreateController extends AbstractActionController
      */
     public function routingAction()
     {
-        // setup params
-        $this->setupParams();
+        // initialize request options
+        $this->requestOptions($this->getRequest()->getParams());
 
-        // get needed params
-        $path               = $this->requestParams->get('path');
-        $singleRoute        = $this->requestParams->get('singleRoute');
-        $moduleName         = $this->requestParams->get('moduleName');
-        $modulePath         = $this->requestParams->get('modulePath');
-        $moduleRoute        = $this->requestParams->get('moduleRoute');
+        // get needed options to shorten code
+        $path               = $this->requestOptions()->getPath();
+        $flagSingleRoute    = $this->requestOptions()->getFlagSingleRoute();
+        $moduleName         = $this->requestOptions()->getModuleName();
+        $modulePath         = $this->requestOptions()->getModulePath();
+        $moduleRoute        = $this->requestOptions()->getModuleRoute();
 
         // check for module path and application config
         if (!file_exists($path . '/module')
@@ -768,7 +596,7 @@ class CreateController extends AbstractActionController
         $childRoutes = array();
 
         // check for single route
-        if ($singleRoute) {
+        if ($flagSingleRoute) {
             // create child routes
             $childRoutes = array(
                 'controller-action' => array(

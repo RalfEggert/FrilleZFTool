@@ -26,6 +26,12 @@ return array(
         ),
     ),
 
+    'controller_plugins' => array(
+        'invokables' => array(
+            'requestOptions' => 'ZFTool\Controller\Plugin\RequestOptions',
+        ),
+    ),
+
     'view_manager' => array(
         'template_map' => array(
             'zf-tool/diagnostics/run' => __DIR__ . '/../view/diagnostics/run.phtml',

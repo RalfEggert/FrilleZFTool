@@ -143,7 +143,7 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
  * Make doc block generation optional [DONE]
  * Add basic routing (optional) [DONE]
  * Create Configurator class for configuration changes [IN PROGRESS]
- * Create plugin for manipulating request parameters [NOT STARTED YET]
+ * Create plugin for manipulating request parameters [DONE]
  * Create Factory class for given controller [NOT STARTED YET]
  * Add configuration for classmap generation [NOT STARTED YET]
  * Refactor controllers [NOT STARTED YET]
