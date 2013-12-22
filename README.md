@@ -1,6 +1,10 @@
   Zend Framework 2 Tool
 =========================
 
+This is a **fork** of the official ZFTool module:
+https://github.com/zendframework/ZFTool
+
+
 **ZFTool** is an utility module for maintaining modular Zend Framework 2 applications.
 It runs from the command line and can be installed as ZF2 module or as PHAR (see below).
 
@@ -135,3 +139,16 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
  * Inspection of application configuration. [DONE]
  * Deploying zf2 skeleton applications. [DONE]
  * Reading and writing app configuration. [DONE]
+ * Generate all code with Zend\Code [DONE]
+ * Make doc block generation optional [DONE]
+ * Add basic routing (optional) [DONE]
+ * Create Configurator class for configuration changes [IN PROGRESS]
+ * Create plugin for manipulating request parameters [NOT STARTED YET]
+ * Create Factory class for given controller [NOT STARTED YET]
+ * Add configuration for classmap generation [NOT STARTED YET]
+ * Refactor controllers [NOT STARTED YET]
+ * Write tests for Generator, Configurator, Controller [NOT STARTED YET]
+ * Create configuration for Zend\Translate [NOT STARTED YET]
+ * Turn module caching on/off, check writable caching dir [NOT STARTED YET]
+ * Create Skeletons and configuration for view helper, controller plugin. form, input filter [NOT STARTED YET]
+
