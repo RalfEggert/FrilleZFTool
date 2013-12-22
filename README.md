@@ -147,6 +147,7 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
  * Create Factory class for given controller [NOT STARTED YET]
  * Add configuration for classmap generation [NOT STARTED YET]
  * Refactor controllers [NOT STARTED YET]
+ * Add module inspections (e.g. check Module.php class) [NOT STARTED YET]
  * Write tests for Generator, Configurator, Controller [NOT STARTED YET]
  * Create configuration for Zend\Translate [NOT STARTED YET]
  * Turn module caching on/off, check writable caching dir [NOT STARTED YET]
