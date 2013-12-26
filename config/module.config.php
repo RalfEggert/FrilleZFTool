@@ -21,14 +21,10 @@ return array(
     ),
 
     'service_manager' => array(
-        'invokables' => array(
-            'ZFTool\Generator\ModuleGenerator' => 'ZFTool\Generator\ModuleGenerator',
-        ),
-    ),
-
-    'controller_plugins' => array(
-        'invokables' => array(
-            'requestOptions' => 'ZFTool\Controller\Plugin\RequestOptions',
+        'factories' => array(
+            'ZFTool\Options\RequestOptions'       => 'ZFTool\Options\RequestOptionsFactory',
+            'ZFTool\Generator\ModuleConfigurator' => 'ZFTool\Generator\ModuleConfiguratorFactory',
+            'ZFTool\Generator\ModuleGenerator'    => 'ZFTool\Generator\ModuleGeneratorFactory',
         ),
     ),
 

@@ -17,13 +17,21 @@ class CreateControllerFactory implements FactoryInterface
     {
         $serviceLocator = $controllerLoader->getServiceLocator();
 
-        $console         = $serviceLocator->get('console');
-        $moduleGenerator = $serviceLocator->get('ZFTool\Generator\ModuleGenerator');
+        $console            = $serviceLocator->get('console');
+        $requestOptions     = $serviceLocator->get(
+            'ZFTool\Options\RequestOptions'
+        );
+        $moduleGenerator    = $serviceLocator->get(
+            'ZFTool\Generator\ModuleGenerator'
+        );
+        $moduleConfigurator = $serviceLocator->get(
+            'ZFTool\Generator\ModuleConfigurator'
+        );
 
-        $controller = new CreateController($console, $moduleGenerator);
+        $controller = new CreateController(
+            $console, $requestOptions, $moduleGenerator, $moduleConfigurator
+        );
 
         return $controller;
-
     }
-
-} 
+}

@@ -13,6 +13,7 @@ use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\ConsoleModel;
 use ZFTool\Generator\ModuleGenerator;
+use ZFTool\Generator\ModuleConfigurator;
 use ZFTool\Model\Skeleton;
 use ZFTool\Model\Utility;
 use ZFTool\Options\RequestOptions;
@@ -35,28 +36,28 @@ class CreateController extends AbstractActionController
     protected $moduleGenerator;
 
     /**
+     * @var ModuleConfigurator
+     */
+    protected $moduleConfigurator;
+
+    /**
+     * @var RequestOptions
+     */
+    protected $requestOptions;
+
+    /**
      * @param AdapterInterface $console
      * @param ModuleGenerator  $moduleGenerator
      */
     function __construct(
-        AdapterInterface $console, ModuleGenerator $moduleGenerator
+        AdapterInterface $console, RequestOptions $requestOptions,
+        ModuleGenerator $moduleGenerator, ModuleConfigurator $moduleConfigurator
     ) {
         // setup dependencies
-        $this->moduleGenerator = $moduleGenerator;
-        $this->console         = $console;
-    }
-
-
-    /**
-     * Convenience method to support IDE autocompletion
-     *
-     * @param Parameters $parameters
-     *
-     * @return RequestOptions
-     */
-    protected function requestOptions(Parameters $parameters = null)
-    {
-        return $this->plugin('requestOptions')->__invoke($parameters);
+        $this->console            = $console;
+        $this->requestOptions     = $requestOptions;
+        $this->moduleGenerator    = $moduleGenerator;
+        $this->moduleConfigurator = $moduleConfigurator;
     }
 
     /**
@@ -66,9 +67,6 @@ class CreateController extends AbstractActionController
      */
     public function projectAction()
     {
-        // initialize request options
-        $this->requestOptions($this->getRequest()->getParams());
-
         // check for zip extension
         if (!extension_loaded('zip')) {
             return $this->sendError(
@@ -84,8 +82,8 @@ class CreateController extends AbstractActionController
         }
 
         // get needed options to shorten code
-        $path   = $this->requestOptions()->getPath();
-        $tmpDir = $this->requestOptions()->getTmpDir();
+        $path   = $this->requestOptions->getPath();
+        $tmpDir = $this->requestOptions->getTmpDir();
 
         // check if path exists
         if (file_exists($path)) {
@@ -187,29 +185,15 @@ class CreateController extends AbstractActionController
      */
     public function controllerAction()
     {
-        // initialize request options
-        $this->requestOptions($this->getRequest()->getParams());
-
         // get needed options to shorten code
-        $path               = $this->requestOptions()->getPath();
-        $flagNoConfig       = $this->requestOptions()->getFlagNoConfig();
-        $moduleName         = $this->requestOptions()->getModuleName();
-        $modulePath         = $this->requestOptions()->getModulePath();
-        $controllerName     = $this->requestOptions()->getControllerName();
-        $controllerPath     = $this->requestOptions()->getControllerPath();
-        $controllerKey      = $this->requestOptions()->getControllerKey();
-        $controllerClass    = $this->requestOptions()->getControllerClass();
-        $controllerFile     = $this->requestOptions()->getControllerFile();
-        $controllerViewPath = $this->requestOptions()->getControllerViewPath();
-        $actionName         = $this->requestOptions()->getActionName();
-        $actionMethod       = $this->requestOptions()->getActionMethod();
-        $actionViewPath     = $this->requestOptions()->getActionViewPath();
-        $actionViewFile     = $this->requestOptions()->getActionViewFile();
-
-        // change doc block flag
-        $this->moduleGenerator->setCreateDocBlocks(
-            false === $this->requestOptions()->getFlagNoDocBlocks() 
-        );
+        $path               = $this->requestOptions->getPath();
+        $flagNoConfig       = $this->requestOptions->getFlagNoConfig();
+        $moduleName         = $this->requestOptions->getModuleName();
+        $modulePath         = $this->requestOptions->getModulePath();
+        $controllerName     = $this->requestOptions->getControllerName();
+        $controllerPath     = $this->requestOptions->getControllerPath();
+        $controllerClass    = $this->requestOptions->getControllerClass();
+        $controllerFile     = $this->requestOptions->getControllerFile();
 
         // check for module path and application config
         if (!file_exists($path . '/module')
@@ -237,93 +221,27 @@ class CreateController extends AbstractActionController
         );
 
         // create controller class
-        $controllerFlag = $this->moduleGenerator->createController(
-            $controllerClass, $moduleName, $controllerPath . $controllerFile
-        );
-
-        // create dir if not exists
-        if (!file_exists($controllerViewPath)) {
-            mkdir($controllerViewPath, 0777, true);
-        }
+        $controllerFlag = $this->moduleGenerator->createController();
 
         // create view script
-        $viewScriptFlag = $this->moduleGenerator->createViewScript(
-            $actionName, $controllerName, $moduleName, $actionViewPath
-        );
+        $viewScriptFlag = $this->moduleGenerator->createViewScript();
 
-        // check for no configuration writing
-        if (!$flagNoConfig) {
-            // Read module configuration
-            $moduleConfigOld = require $modulePath . '/config/module.config.php';
-            $moduleConfigNew = $moduleConfigOld;
+        // add controller configuration to module
+        $moduleConfig = $this->moduleConfigurator->addControllerConfig();
 
-            // check for controllers configuration
-            if (!isset($moduleConfigNew['controllers'])) {
-                $moduleConfigNew['controllers'] = array();
-            }
+        // check for module config updates
+        if ($moduleConfig) {
+            // update module configuration
+            $this->moduleGenerator->updateConfiguration(
+                $moduleConfig, $modulePath . '/config/module.config.php'
+            );
 
-            // check for controllers invokables configuration
-            if (!isset($moduleConfigNew['controllers']['invokables'])) {
-                $moduleConfigNew['controllers']['invokables'] = array();
-            }
-
-            // check if invokable key is already there
-            if (!in_array(
-                $controllerKey, $moduleConfigNew['controllers']['invokables']
-            )
-            ) {
-                $moduleConfigNew['controllers']['invokables'][$controllerKey]
-                    = $controllerKey . 'Controller';
-            }
-
-            // check for view_manager
-            if (!isset($moduleConfigNew['view_manager'])) {
-                $moduleConfigNew['view_manager'] = array();
-            }
-
-            // check for template_path_stack
-            if (!isset($moduleConfigNew['view_manager']['template_path_stack'])) {
-                $moduleConfigNew['view_manager']['template_path_stack'] = array();
-            }
-
-            // set config dir
-            $configDir = realpath($modulePath . '/config');
-
-            // check for any path
-            if (count($moduleConfigNew['view_manager']['template_path_stack'])
-                > 0
-            ) {
-                // loop through path stack and add path again due to
-                // constant resolution problems
-                foreach (
-                    $moduleConfigNew['view_manager']['template_path_stack'] as
-                    $pathKey => $pathKey
-                ) {
-                    if ($configDir . '/../view' == $pathKey) {
-                        $moduleConfigNew['view_manager']['template_path_stack'][$pathKey]
-                            = '__DIR__ . \'/../view\'';
-                    }
-                }
-            } else {
-                $moduleConfigNew['view_manager']['template_path_stack'][]
-                    = '__DIR__ . \'/../view\'';
-            }
-
-            // check for module config updates
-            if ($moduleConfigNew !== $moduleConfigOld) {
-
-                // update module configuration
-                $this->moduleGenerator->updateConfiguration(
-                    $moduleConfigNew, $modulePath . '/config/module.config.php'
-                );
-
-                // success message
-                $this->console->writeLine(
-                    'Module configuration was updated for module "'
-                    . $moduleName . '".',
-                    Color::WHITE
-                );
-            }
+            // success message
+            $this->console->writeLine(
+                'Module configuration was updated for module "'
+                . $moduleName . '".',
+                Color::WHITE
+            );
         }
 
         // write message
@@ -348,27 +266,14 @@ class CreateController extends AbstractActionController
      */
     public function methodAction()
     {
-        // initialize request options
-        $this->requestOptions($this->getRequest()->getParams());
-
         // get needed options to shorten code
-        $path               = $this->requestOptions()->getPath();
-        $moduleName         = $this->requestOptions()->getModuleName();
-        $controllerName     = $this->requestOptions()->getControllerName();
-        $controllerPath     = $this->requestOptions()->getControllerPath();
-        $controllerClass    = $this->requestOptions()->getControllerClass();
-        $controllerKey      = $this->requestOptions()->getControllerKey();
-        $controllerFile     = $this->requestOptions()->getControllerFile();
-        $controllerViewPath = $this->requestOptions()->getControllerViewPath();
-        $actionName         = $this->requestOptions()->getActionName();
-        $actionMethod       = $this->requestOptions()->getActionMethod();
-        $actionViewPath     = $this->requestOptions()->getActionViewPath();
-        $actionViewFile     = $this->requestOptions()->getActionViewFile();
-
-        // change doc block flag
-        $this->moduleGenerator->setCreateDocBlocks(
-            false === $this->requestOptions()->getFlagNoDocBlocks() 
-        );
+        $path            = $this->requestOptions->getPath();
+        $moduleName      = $this->requestOptions->getModuleName();
+        $controllerName  = $this->requestOptions->getControllerName();
+        $controllerPath  = $this->requestOptions->getControllerPath();
+        $controllerClass = $this->requestOptions->getControllerClass();
+        $controllerFile  = $this->requestOptions->getControllerFile();
+        $actionName      = $this->requestOptions->getActionName();
 
         // check for module path and application config
         if (!file_exists($path . '/module')
@@ -399,10 +304,7 @@ class CreateController extends AbstractActionController
 
         // update controller class
         try {
-            $controllerFlag = $this->moduleGenerator->updateController(
-                $actionMethod, $controllerKey, $moduleName,
-                $controllerPath . $controllerFile
-            );
+            $controllerFlag = $this->moduleGenerator->updateController();
         } catch (GeneratorException $e) {
             return $this->sendError(
                 'The action "' . $actionName
@@ -412,9 +314,7 @@ class CreateController extends AbstractActionController
         }
 
         // create view script
-        $viewScriptFlag = $this->moduleGenerator->createViewScript(
-            $actionName, $controllerName, $moduleName, $actionViewPath
-        );
+        $viewScriptFlag = $this->moduleGenerator->createViewScript();
 
         // write message
         if ($controllerFlag && $viewScriptFlag) {
@@ -439,19 +339,11 @@ class CreateController extends AbstractActionController
      */
     public function moduleAction()
     {
-        // initialize request options
-        $this->requestOptions($this->getRequest()->getParams());
-
         // get needed options to shorten code
-        $path          = $this->requestOptions()->getPath();
-        $moduleName    = $this->requestOptions()->getModuleName();
-        $modulePath    = $this->requestOptions()->getModulePath();
-        $moduleViewDir = $this->requestOptions()->getModuleViewDir();
-
-        // change doc block flag
-        $this->moduleGenerator->setCreateDocBlocks(
-            false === $this->requestOptions()->getFlagNoDocBlocks() 
-        );
+        $path          = $this->requestOptions->getPath();
+        $moduleName    = $this->requestOptions->getModuleName();
+        $modulePath    = $this->requestOptions->getModulePath();
+        $moduleViewDir = $this->requestOptions->getModuleViewDir();
 
         // check for module path and application config
         if (!file_exists($path . '/module')
@@ -476,35 +368,20 @@ class CreateController extends AbstractActionController
             Color::YELLOW
         );
 
-        // create dirs
-        mkdir($modulePath . '/config', 0777, true);
-        mkdir($modulePath . '/src/' . $moduleName . '/Controller', 0777, true);
-        mkdir($modulePath . '/view/' . $moduleViewDir, 0777, true);
-
         // Create the Module.php
-        $this->moduleGenerator->createModule(
-            $moduleName, $modulePath . '/Module.php'
-        );
+        $this->moduleGenerator->createModule();
 
         // Create the module.config.php
-        $this->moduleGenerator->createConfiguration(
-            array(),
-            $modulePath . '/config/module.config.php'
-        );
+        $this->moduleGenerator->createConfiguration();
 
-        // set file name
-        $configFile = $path . '/config/application.config.php';
+        // add module configuration to application
+        $applicationConfig = $this->moduleConfigurator->addModuleConfig();
 
-        // read application configuration
-        $configData = require $configFile;
-
-        // Add the module in application.config.php
-        if (!in_array($moduleName, $configData['modules'])) {
-            $configData['modules'][] = $moduleName;
-
-            // update application configuration
-            $this->moduleGenerator->updateConfiguration(
-                $configData, $configFile
+        // check for module config updates
+        if ($applicationConfig) {
+            // update module configuration
+            $configFlag = $this->moduleGenerator->updateConfiguration(
+                $applicationConfig, $path . '/config/application.config.php'
             );
 
             // success message
@@ -535,15 +412,10 @@ class CreateController extends AbstractActionController
      */
     public function routingAction()
     {
-        // initialize request options
-        $this->requestOptions($this->getRequest()->getParams());
-
         // get needed options to shorten code
-        $path               = $this->requestOptions()->getPath();
-        $flagSingleRoute    = $this->requestOptions()->getFlagSingleRoute();
-        $moduleName         = $this->requestOptions()->getModuleName();
-        $modulePath         = $this->requestOptions()->getModulePath();
-        $moduleRoute        = $this->requestOptions()->getModuleRoute();
+        $path       = $this->requestOptions->getPath();
+        $moduleName = $this->requestOptions->getModuleName();
+        $modulePath = $this->requestOptions->getModulePath();
 
         // check for module path and application config
         if (!file_exists($path . '/module')
@@ -568,164 +440,34 @@ class CreateController extends AbstractActionController
             Color::YELLOW
         );
 
-        // Read module configuration
-        $moduleConfigOld = require $modulePath . '/config/module.config.php';
-        $moduleConfigNew = $moduleConfigOld;
-
-        // check if controller exists
-        if (!isset($moduleConfigNew['controllers'])
-            || count($moduleConfigNew['controllers']) == 0
-        ) {
-            return $this->sendError(
-                'No controller exist in the module ' . $moduleName . '.'
-            );
-        }
-
-        // check for router
-        if (!isset($moduleConfigNew['router'])) {
-            $moduleConfigNew['router'] = array();
-        }
-
-        // reset all routes
-        $moduleConfigNew['router']['routes'] = array();
-
-        // set controller namespace
-        $controllerNamespace = $moduleName . '\Controller';
-
-        // set child routes
-        $childRoutes = array();
-
-        // check for single route
-        if ($flagSingleRoute) {
-            // create child routes
-            $childRoutes = array(
-                'controller-action' => array(
-                    'type'    => 'segment',
-                    'options' => array(
-                        'route'    => '/:controller[/:action[/:id]]',
-                        'constraints' => array(
-                            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
-                            'id'         => '[0-9_-]*',
-                        ),
-                    ),
-                ),
-            );
-        } else {
-            // set controller keys
-            $controllerKeys = array();
-
-            // merge controller keys
-            foreach ($moduleConfigNew['controllers'] as $group) {
-                $controllerKeys = array_merge(
-                    $controllerKeys,
-                    array_keys($group)
-                );
-            }
-
-            // merge controller keys
-            foreach ($controllerKeys as $controllerName) {
-                // clear leading namespace
-                if (stripos($controllerName, $controllerNamespace) === 0) {
-                    $controllerName = str_replace(
-                        $controllerNamespace . '\\', '', $controllerName
-                    );
-                }
-
-                // set routing key
-                $routingKey = strtolower($controllerName);
-                $routingKey = str_replace('controller', '', $routingKey);
-
-                // set controller route
-                $controllerRoute = '/' . strtolower($controllerName);
-
-                // create route
-                $childRoutes[$routingKey] = array(
-                    'type' => 'segment',
-                    'options' => array(
-                        'route'    => $controllerRoute . '[/:action[/:id]]',
-                        'defaults' => array(
-                            'controller' => $controllerName,
-                        ),
-                        'constraints' => array(
-                            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
-                            'id'         => '[0-9_-]*',
-                        ),
-                    ),
-                );
-            }
-        }
-
-        // set controller keys
-        $controllerKeys = array();
-
-        // merge controller keys
-        foreach ($moduleConfigNew['controllers'] as $group) {
-            $controllerKeys = array_merge(
-                $controllerKeys,
-                array_keys($group)
-            );
-        }
-
-        // identify default controller
-        if (count($controllerKeys) == 1) {
-            $defaultController = reset($controllerKeys);
-        } else {
-            $indexController = $controllerNamespace . '\Index';
-            $moduleController = $controllerNamespace . '\\' . $moduleName;
-
-            if (in_array($indexController, $controllerKeys)) {
-                $defaultController = $indexController;
-            } elseif (in_array($moduleController, $controllerKeys)) {
-                $defaultController = $moduleController;
-            } else {
-                $defaultController = reset($controllerKeys);
-            }
-        }
-
-        // clear leading namespace
-        if (stripos($defaultController, $controllerNamespace) === 0) {
-            $defaultController = str_replace(
-                $controllerNamespace . '\\', '', $defaultController
-            );
-        }
-
-        // set routing key
-        $routingKey = strtolower($moduleName);
-
-        // create route
-        $moduleConfigNew['router']['routes'] = array(
-            $routingKey => array(
-                'type' => 'Literal',
-                'options' => array(
-                    'route'    => $moduleRoute,
-                    'defaults' => array(
-                        '__NAMESPACE__' => $controllerNamespace,
-                        'controller' => $defaultController,
-                        'action'     => 'index',
-                    ),
-                ),
-                'may_terminate' => true,
-                'child_routes' => $childRoutes,
-            )
-        );
-
         // set config flag
         $configFlag = false;
 
-        // check for module config updates
-        if ($moduleConfigNew !== $moduleConfigOld) {
+        // update controller class
+        try {
+            // add controller configuration to module
+            $moduleConfig = $this->moduleConfigurator->addRouterConfig();
 
-            // update module configuration
-            $configFlag = $this->moduleGenerator->updateConfiguration(
-                $moduleConfigNew, $modulePath . '/config/module.config.php'
-            );
+            // check for module config updates
+            if ($moduleConfig) {
+                // update module configuration
+                $configFlag = $this->moduleGenerator->updateConfiguration(
+                    $moduleConfig, $modulePath . '/config/module.config.php'
+                );
 
-            // success message
-            $this->console->writeLine(
-                'Module configuration was updated for module "'
-                . $moduleName . '".',
-                Color::WHITE
+                // success message
+                $this->console->writeLine(
+                    'Module configuration was updated for module "'
+                    . $moduleName . '".',
+                    Color::WHITE
+                );
+
+                // change flag
+                $configFlag = true;
+            }
+        } catch (GeneratorException $e) {
+            return $this->sendError(
+                'No controller exist in the module ' . $moduleName . '.'
             );
         }
 
