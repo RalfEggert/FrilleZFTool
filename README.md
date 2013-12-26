@@ -134,11 +134,7 @@ way you can execute the *zftool.phar* script wherever you are, for instance exec
 Note: If the above fails due to permissions, run the mv line again with sudo.
 
 
-## Todo
- * Module maintenance (installation, configuration, removal etc.) [installation DONE]
- * Inspection of application configuration. [DONE]
- * Deploying zf2 skeleton applications. [DONE]
- * Reading and writing app configuration. [DONE]
+## Todo for the fork rework
  * Generate all code with Zend\Code [DONE]
  * Make doc block generation optional [DONE]
  * Add basic routing (optional) [DONE]
