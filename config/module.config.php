@@ -111,7 +111,7 @@ return array(
                 ),
                 'zftool-create-controller' => array(
                     'options' => array(
-                        'route'    => 'create controller <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-config|-n] [--no-docblocks|-d]',
+                        'route'    => 'create controller <controllerName> <moduleName> [<path>] [--with-factory|-f] [--ignore-conventions|-i] [--no-config|-n] [--no-docblocks|-d]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'controller',
@@ -133,6 +133,15 @@ return array(
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'routing',
+                        ),
+                    ),
+                ),
+                'zftool-create-controller-factory' => array(
+                    'options' => array(
+                        'route'    => 'create controller-factory <controllerName> <moduleName> [<path>] [--no-config|-n] [--no-docblocks|-d]',
+                        'defaults' => array(
+                            'controller' => 'ZFTool\Controller\Create',
+                            'action'     => 'controller-factory',
                         ),
                     ),
                 ),

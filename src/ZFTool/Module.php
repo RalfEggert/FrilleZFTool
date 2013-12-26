@@ -84,10 +84,11 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             array('--no-docblocks | -d', 'Prevent the doc block generation'),
 
             'Controller creation:',
-            'create controller <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-config|-n] [--no-docblocks|-d]' => 'create a controller in module',
+            'create controller <controllerName> <moduleName> [<path>] [--with-factory|-f] [--ignore-conventions|-i] [--no-config|-n] [--no-docblocks|-d]' => 'create a controller in module',
             array('<controllerName>', 'The name of the controller to be created'),
             array('<moduleName>', 'The module in which the controller should be created'),
             array('<path>', 'The root path of a ZF2 application where to create the controller'),
+            array('--with-factory | -f', 'Create a factory for the controller'),
             array('--ignore-conventions | -i', 'Ignore coding conventions'),
             array('--no-config | -n', 'Prevent that module configuration is updated'),
             array('--no-docblocks | -d', 'Prevent the doc block generation'),
@@ -106,6 +107,14 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             array('<moduleName>', 'The module containing the controller'),
             array('<path>', 'The root path of a ZF2 application where to create the action'),
             array('--single-route | -s', 'Create a single standard route for the module'),
+
+            'Controller factory creation:',
+            'create controller-factory <controllerName> <moduleName> [<path>] [--no-config|-n] [--no-docblocks|-d]' => 'create a controller factory in module',
+            array('<controllerName>', 'The name of the controller the factory has to be created'),
+            array('<moduleName>', 'The module in which the controller factory should be created'),
+            array('<path>', 'The root path of a ZF2 application where to create the controller factory'),
+            array('--no-config | -n', 'Prevent that module configuration is updated'),
+            array('--no-docblocks | -d', 'Prevent the doc block generation'),
 
             'Classmap generator:',
             'classmap generate <directory> <classmap file> [--append|-a] [--overwrite|-w]' => '',

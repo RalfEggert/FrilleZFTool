@@ -187,7 +187,7 @@ class CreateController extends AbstractActionController
     {
         // get needed options to shorten code
         $path               = $this->requestOptions->getPath();
-        $flagNoConfig       = $this->requestOptions->getFlagNoConfig();
+        $flagWithFactory    = $this->requestOptions->getFlagWithFactory();
         $moduleName         = $this->requestOptions->getModuleName();
         $modulePath         = $this->requestOptions->getModulePath();
         $controllerName     = $this->requestOptions->getControllerName();
@@ -229,6 +229,17 @@ class CreateController extends AbstractActionController
         // add controller configuration to module
         $moduleConfig = $this->moduleConfigurator->addControllerConfig();
 
+        // check for factory flag
+        if ($flagWithFactory) {
+            // create controller factory class
+            $factoryFlag = $this->moduleGenerator->createControllerFactory();
+
+            // add controller factory configuration to module
+            $moduleConfig = $this->moduleConfigurator->addControllerFactoryConfig();
+        } else {
+            $factoryFlag = false;
+        }
+
         // check for module config updates
         if ($moduleConfig) {
             // update module configuration
@@ -245,7 +256,14 @@ class CreateController extends AbstractActionController
         }
 
         // write message
-        if ($controllerFlag && $viewScriptFlag) {
+        if ($controllerFlag && $viewScriptFlag && $factoryFlag) {
+            $this->console->writeLine(
+                'The controller "' . $controllerName
+                . '" has been created with a factory in module "'
+                . $moduleName . '".',
+                Color::GREEN
+            );
+        } elseif ($controllerFlag && $viewScriptFlag) {
             $this->console->writeLine(
                 'The controller "' . $controllerName
                 . '" has been created in module "' . $moduleName . '".',
@@ -254,6 +272,90 @@ class CreateController extends AbstractActionController
         } else {
             $this->console->writeLine(
                 'There was an error during controller creation.',
+                Color::RED
+            );
+        }
+    }
+
+    /**
+     * Create a controller factory
+     *
+     * @return ConsoleModel
+     */
+    public function controllerFactoryAction()
+    {
+        // get needed options to shorten code
+        $path               = $this->requestOptions->getPath();
+        $moduleName         = $this->requestOptions->getModuleName();
+        $modulePath         = $this->requestOptions->getModulePath();
+        $controllerName     = $this->requestOptions->getControllerName();
+        $controllerPath     = $this->requestOptions->getControllerPath();
+        $controllerClass    = $this->requestOptions->getControllerClass();
+        $controllerFile     = $this->requestOptions->getControllerFile();
+
+        // check for module path and application config
+        if (!file_exists($path . '/module')
+            || !file_exists($path . '/config/application.config.php')
+        ) {
+            return $this->sendError(
+                'The path ' . $path . ' doesn\'t contain a ZF2 application. '
+                . 'I cannot create a controller here.'
+            );
+        }
+
+        // check if controller exists already in module
+        if (!file_exists($controllerPath . $controllerFile)) {
+            return $this->sendError(
+                'The controller "' . $controllerClass
+                . '" does not exist in module "' . $moduleName . '".'
+            );
+        }
+
+        // write start message
+        $this->console->writeLine(
+            'Creating factory for controller "' . $controllerName
+            . '" in module "' . $moduleName . '".',
+            Color::YELLOW
+        );
+
+        // create controller factory class
+        try {
+            $factoryFlag = $this->moduleGenerator->createControllerFactory();
+        } catch (GeneratorException $e) {
+            return $this->sendError(
+                'The factory for the controller "' . $controllerName
+                . '" of module "' . $moduleName . '" exists already.'
+            );
+        }
+
+        // add controller factory configuration to module
+        $moduleConfig = $this->moduleConfigurator->addControllerFactoryConfig();
+
+        // check for module config updates
+        if ($moduleConfig) {
+            // update module configuration
+            $this->moduleGenerator->updateConfiguration(
+                $moduleConfig, $modulePath . '/config/module.config.php'
+            );
+
+            // success message
+            $this->console->writeLine(
+                'Module configuration was updated for module "'
+                . $moduleName . '".',
+                Color::WHITE
+            );
+        }
+
+        // write message
+        if ($factoryFlag) {
+            $this->console->writeLine(
+                'The factory for the controller "' . $controllerName
+                . '" has been created in module "' . $moduleName . '".',
+                Color::GREEN
+            );
+        } else {
+            $this->console->writeLine(
+                'There was an error during controller factory creation.',
                 Color::RED
             );
         }

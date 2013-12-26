@@ -108,6 +108,11 @@ class ModuleConfigurator
             $moduleConfigNew['controllers']['invokables'] = array();
         }
 
+        // check for controllers factories configuration
+        if (!isset($moduleConfigNew['controllers']['factories'])) {
+            $moduleConfigNew['controllers']['factories'] = array();
+        }
+
         // check if invokable key is already there
         if (!in_array(
             $controllerKey, $moduleConfigNew['controllers']['invokables']
@@ -135,6 +140,73 @@ class ModuleConfigurator
             $moduleConfigNew['view_manager']['template_path_stack'][]
                 = '__DIR__ . \'/../view\'';
         }
+
+        // reset constant compilation
+        $moduleConfigNew = $this->resetConfigDirCompilation(
+            $moduleConfigNew, $configDir
+        );
+
+        // check for module config updates
+        if ($moduleConfigNew !== $moduleConfigOld) {
+            return $moduleConfigNew;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Add configuration for a new controller factory
+     *
+     * @return bool|mixed
+     */
+    public function addControllerFactoryConfig()
+    {
+        // check for no config flag
+        if ($this->flagNoConfig) {
+            return false;
+        }
+
+        // get needed options to shorten code
+        $modulePath    = $this->requestOptions->getModulePath();
+        $controllerKey = $this->requestOptions->getControllerKey();
+
+        // Read module configuration
+        $moduleConfigOld = require $modulePath . '/config/module.config.php';
+        $moduleConfigNew = $moduleConfigOld;
+
+        // check for controllers configuration
+        if (!isset($moduleConfigNew['controllers'])) {
+            $moduleConfigNew['controllers'] = array();
+        }
+
+        // check for controllers invokables configuration
+        if (!isset($moduleConfigNew['controllers']['invokables'])) {
+            $moduleConfigNew['controllers']['invokables'] = array();
+        }
+
+        // check for controllers invokables configuration
+        if (!isset($moduleConfigNew['controllers']['factories'])) {
+            $moduleConfigNew['controllers']['factories'] = array();
+        }
+
+        // check if factory key is already there
+        if (!in_array(
+            $controllerKey, $moduleConfigNew['controllers']['factories']
+        )
+        ) {
+            $moduleConfigNew['controllers']['factories'][$controllerKey]
+                = $controllerKey . 'ControllerFactory';
+        }
+
+        // check if invokable key is there
+        if (isset($moduleConfigNew['controllers']['invokables'])
+            && isset($moduleConfigNew['controllers']['invokables'][$controllerKey])
+        ) {
+            unset($moduleConfigNew['controllers']['invokables'][$controllerKey]);
+        }
+
+        // set config dir
+        $configDir = realpath($modulePath . '/config');
 
         // reset constant compilation
         $moduleConfigNew = $this->resetConfigDirCompilation(

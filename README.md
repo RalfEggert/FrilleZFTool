@@ -68,11 +68,12 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
     --no-docblocks | -d         Prevent the doc block generation
 
 ### Controller creation:
-	zf.php create controller <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-config|-n] [--no-docblocks|-d]
+	zf.php create controller <controllerName> <moduleName> [<path>] [--with-factory|-f] [--ignore-conventions|-i] [--no-config|-n] [--no-docblocks|-d]
 
 	<controllerName>            The name of the controller to be created
 	<moduleName>                The module in which the controller should be created
 	<path>                      The root path of a ZF2 application where to create the controller
+    --with-factory | -f         Create a factory for the controller
     --ignore-conventions | -i   Ignore coding conventions
     --no-config | -n            Prevent that module configuration is updated
     --no-docblocks | -d         Prevent the doc block generation
@@ -93,6 +94,15 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 	<moduleName>                The module containing the controller
 	<path>                      The root path of a ZF2 application where to create the action
     --single-route | -s         Create a single standard route for the module
+
+### Controller factory creation:
+	zf.php create controller-factory <controllerName> <moduleName> [<path>] [--no-config|-n] [--no-docblocks|-d]
+
+	<controllerName>            The name of the controller the factory has to be created
+	<moduleName>                The module in which the controller factory should be created
+	<path>                      The root path of a ZF2 application where to create the controller factory
+    --no-config | -n            Prevent that module configuration is updated
+    --no-docblocks | -d         Prevent the doc block generation
 
 ### Application configuration
 
@@ -135,17 +145,17 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
 
 
 ## Todo for the fork rework
- * Generate all code with Zend\Code [DONE]
+ * Generate all code with `Zend\Code` [DONE]
  * Make doc block generation optional [DONE]
  * Add basic routing (optional) [DONE]
  * Create Configurator class for configuration changes [DONE]
  * Create plugin for manipulating request parameters [DONE]
- * Create Factory class for given controller [IN PROGRESS]
+ * Create Factory class for given controller [DONE]
  * Add configuration for classmap generation [NOT STARTED YET]
  * Refactor controllers [NOT STARTED YET]
  * Add module inspections (e.g. check Module.php class) [NOT STARTED YET]
  * Write tests for Generator, Configurator, Controller [NOT STARTED YET]
- * Create configuration for Zend\Translate [NOT STARTED YET]
+ * Create configuration for `Zend\Translate` [NOT STARTED YET]
  * Turn module caching on/off, check writable caching dir [NOT STARTED YET]
  * Create Skeletons and configuration for view helper, controller plugin. form, input filter [NOT STARTED YET]
 

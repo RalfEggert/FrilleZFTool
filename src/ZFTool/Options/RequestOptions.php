@@ -19,133 +19,120 @@ class RequestOptions extends AbstractOptions
      * @var string
      */
     protected $actionMethod;
-
     /**
      * Name of action
      *
      * @var string
      */
     protected $actionName;
-
     /**
      * View file for action
      *
      * @var string
      */
     protected $actionViewFile;
-
     /**
      * View path for action
      *
      * @var string
      */
     protected $actionViewPath;
-
     /**
      * Class name of controller
      *
      * @var string
      */
     protected $controllerClass;
-
     /**
      * File name of controller
      *
      * @var string
      */
     protected $controllerFile;
-
     /**
      * Configuration key of controller
      *
      * @var string
      */
     protected $controllerKey;
-
     /**
      * Name of controller
      *
      * @var string
      */
     protected $controllerName;
-
     /**
      * Path to controller
      *
      * @var string
      */
     protected $controllerPath;
-
     /**
      * View directory of controller
      *
      * @var string
      */
     protected $controllerViewPath;
-
     /**
      * Flag to ignore coding standard conventions
      *
      * @var boolean
      */
     protected $flagIgnoreConventions;
-
     /**
      * Flag to create no configuration
      *
      * @var boolean
      */
     protected $flagNoConfig;
-
     /**
      * Flag to create no doc blocks
      *
      * @var boolean
      */
     protected $flagNoDocBlocks;
-
     /**
      * Flag to create a single route for a module
      *
      * @var boolean
      */
     protected $flagSingleRoute;
-
+    /**
+     * Flag to create a factory for the class
+     *
+     * @var boolean
+     */
+    protected $flagWithFactory;
     /**
      * Name of module
      *
      * @var string
      */
     protected $moduleName;
-
     /**
      * Path to module
      *
      * @var string
      */
     protected $modulePath;
-
     /**
      * Base route for module
      *
      * @var string
      */
     protected $moduleRoute;
-
     /**
      * View directory of module
      *
      * @var string
      */
     protected $moduleViewDir;
-
     /**
      * Current path to work in
      *
      * @var string
      */
     protected $path;
-
     /**
      * Current temporary directory
      *
@@ -378,6 +365,22 @@ class RequestOptions extends AbstractOptions
     }
 
     /**
+     * @return boolean
+     */
+    public function getFlagWithFactory()
+    {
+        return $this->flagWithFactory;
+    }
+
+    /**
+     * @param boolean $flagWithFactory
+     */
+    public function setFlagWithFactory($flagWithFactory)
+    {
+        $this->flagWithFactory = $flagWithFactory;
+    }
+
+    /**
      * @return string
      */
     public function getModuleName()
@@ -501,6 +504,9 @@ class RequestOptions extends AbstractOptions
         $this->setTmpDir(sys_get_temp_dir());
         $this->setPath($path);
 
+        // with factory
+        $flagWithFactory = $parameters['with-factory'] || $parameters['f'];
+
         // ignore conventions
         $flagIgnoreConventions = $parameters['ignore-conventions']
             || $parameters['i'];
@@ -515,6 +521,7 @@ class RequestOptions extends AbstractOptions
         $flagSingleRoute = $parameters['single-route'] || $parameters['s'];
 
         // set params
+        $this->setFlagWithFactory($flagWithFactory);
         $this->setFlagIgnoreConventions($flagIgnoreConventions);
         $this->setFlagNoConfig($flagNoConfig);
         $this->setFlagNoDocBlocks($flagNoDocBlocks);
