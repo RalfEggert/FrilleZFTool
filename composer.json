@@ -1,11 +1,10 @@
 {
-    "name": "zendframework/zftool",
-    "description": "Utility module for Zend Framework 2 applications.",
+    "name": "ralfeggert/frillezftool",
+    "description": "Fork of the official ZFTool utility module for Zend Framework 2 applications.",
     "keywords": [
         "zf2",
         "tool"
     ],
-    "homepage": "http://framework.zend.com/",
     "license": "BSD-3-Clause",
     "repositories": [
         {
