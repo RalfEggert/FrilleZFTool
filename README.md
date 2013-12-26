@@ -140,7 +140,7 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
  * Add basic routing (optional) [DONE]
  * Create Configurator class for configuration changes [DONE]
  * Create plugin for manipulating request parameters [DONE]
- * Create Factory class for given controller [NOT STARTED YET]
+ * Create Factory class for given controller [IN PROGRESS]
  * Add configuration for classmap generation [NOT STARTED YET]
  * Refactor controllers [NOT STARTED YET]
  * Add module inspections (e.g. check Module.php class) [NOT STARTED YET]
