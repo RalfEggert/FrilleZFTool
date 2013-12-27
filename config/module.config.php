@@ -9,14 +9,20 @@ return array(
     'controllers' => array(
         'factories' => array(
             'ZFTool\Controller\Classmap'    => 'ZFTool\Controller\ClassmapControllerFactory',
+            'ZFTool\Controller\Config'      => 'ZFTool\Controller\ConfigControllerFactory',
             'ZFTool\Controller\Create'      => 'ZFTool\Controller\CreateControllerFactory',
         ),
         'invokables' => array(
             'ZFTool\Controller\Info'        => 'ZFTool\Controller\InfoController',
-            'ZFTool\Controller\Config'      => 'ZFTool\Controller\ConfigController',
             'ZFTool\Controller\Module'      => 'ZFTool\Controller\ModuleController',
             'ZFTool\Controller\Install'     => 'ZFTool\Controller\InstallController',
             'ZFTool\Controller\Diagnostics' => 'ZFTool\Controller\DiagnosticsController',
+        ),
+    ),
+
+    'controller_plugins' => array(
+        'factories' => array(
+            'sendError' => 'ZFTool\Controller\Plugin\SendErrorFactory',
         ),
     ),
 
@@ -57,7 +63,7 @@ return array(
                 ),
                 'zftool-config-list' => array(
                     'options' => array(
-                        'route'    => 'config list [--local|-l]:local',
+                        'route'    => 'config list [--local|-l]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Config',
                             'action'     => 'list',
@@ -66,7 +72,7 @@ return array(
                 ),
                 'zftool-config' => array(
                     'options' => array(
-                        'route'    => 'config <action> [<arg1>] [<arg2>]',
+                        'route'    => 'config <action> <configName> [<configvalue>] [--local|-l]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Config',
                             'action'     => 'get',

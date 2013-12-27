@@ -28,20 +28,6 @@ class InfoController extends AbstractActionController
         $console->writeLine($msg . Version::VERSION);
     }
 
-    public function configAction()
-    {
-        $console = $this->getServiceLocator()->get('console');
-
-        $sm = $this->getServiceLocator();
-        $config = $sm->get('Configuration');
-
-        if(!is_array($config)){
-            $config = ArrayUtils::iteratorToArray($config, true);
-        }
-        $console->writeLine ('Configuration:', Color::GREEN);
-        print_r($config);
-    }
-
     protected function getZF2Path()
     {
         if (getenv('ZF2_PATH')) {

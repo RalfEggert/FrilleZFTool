@@ -27,14 +27,6 @@ class ModuleController extends AbstractActionController
         }
     }
 
-    private function sendError($msg)
-    {
-        $m = new ConsoleModel();
-        $m->setErrorLevel(2);
-        $m->setResult($msg . PHP_EOL);
-        return $m;
-    }
-
     protected function getModulesFromService()
     {
         $sm = $this->getServiceLocator();

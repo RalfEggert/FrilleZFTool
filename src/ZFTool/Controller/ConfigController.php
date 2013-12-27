@@ -2,113 +2,186 @@
 
 namespace ZFTool\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\Stdlib\ArrayUtils;
-use Zend\Version\Version;
-use Zend\Console\ColorInterface as Color;
 use Zend\Config\Writer\Ini as IniWriter;
-use ZFTool\Model\Config;
-use ZFTool\Module;
+use Zend\Console\Adapter\AdapterInterface;
+use Zend\Console\ColorInterface as Color;
+use Zend\Mvc\Controller\AbstractActionController;
+use ZFTool\Model\Config as ModuleConfig;
+use ZFTool\Options\RequestOptions;
 
+/**
+ * Class ConfigController
+ *
+ * @package ZFTool\Controller
+ */
 class ConfigController extends AbstractActionController
 {
+    /**
+     * @var AdapterInterface
+     */
+    protected $console;
 
+    /**
+     * @var RequestOptions
+     */
+    protected $requestOptions;
+
+    /**
+     * @param AdapterInterface $console
+     * @param ModuleGenerator  $moduleGenerator
+     */
+    function __construct(
+        AdapterInterface $console, RequestOptions $requestOptions
+    ) {
+        // setup dependencies
+        $this->console        = $console;
+        $this->requestOptions = $requestOptions;
+    }
+
+    /**
+     * List configuration
+     */
     public function listAction()
     {
-        $console = $this->getServiceLocator()->get('console');
-        $sm = $this->getServiceLocator();
+        // get needed options to shorten code
+        $path      = realpath($this->requestOptions->getPath());
+        $flagLocal = $this->requestOptions->getFlagLocal();
 
-        $isLocal = $this->params()->fromRoute('local');
+        // check for local file
+        if ($flagLocal) {
+            $configFile = $path . '/config/autoload/local.php';
 
-        if ($isLocal) {
-            $appdir = getcwd();
-            echo $appdir;
-            if (file_exists($appdir . '/config/autoload/local.php')) {
-                $config = include $appdir . '/config/autoload/local.php';
-            } else {
-                echo 'FILE NO EXIST' . PHP_EOL;
-                $config = array();
+            // check if local config file exists
+            if (!file_exists($configFile)) {
+                return $this->sendError(
+                    'Local config file ' . $configFile . ' does not exist.'
+                );
             }
         } else {
-            $config = $sm->get('Configuration');
+            $configFile = $path . '/config/application.config.php';
         }
 
-        if (!is_array($config)){
-            $config = ArrayUtils::iteratorToArray($config, true);
+        // fetch config data
+        $configData = include $configFile;
+
+        // check if local config file exists
+        if (empty($configData)) {
+            return $this->sendError(
+                'Config file ' . $configFile . ' is empty.'
+            );
         }
 
-        $console->writeLine('Configuration:', Color::GREEN);
-        // print_r($config);
-        $ini = new IniWriter;
-        echo $ini->toString($config);
+        // start output
+        $this->console->writeLine(
+            'Configuration file ' . $configFile,
+            Color::GREEN
+        );
+
+        // output configuration as ini
+        $iniWriter = new IniWriter;
+        $this->console->writeLine($iniWriter->toString($configData));
     }
 
+    /**
+     * Get configuration by key
+     */
     public function getAction()
     {
-        $console = $this->getServiceLocator()->get('console');
-        $sm = $this->getServiceLocator();
+        // get needed options to shorten code
+        $path       = realpath($this->requestOptions->getPath());
+        $configName = $this->requestOptions->getConfigName();
+        $flagLocal  = $this->requestOptions->getFlagLocal();
 
-        $name = $this->params()->fromRoute('arg1');
-
-        if (!$name) {
-            $console->writeLine('config get <name> was not provided', Color::RED);
-            return;
+        // check for config name
+        if (!$configName) {
+            return $this->sendError(
+                'config get <configName> was not provided'
+            );
         }
 
-        $isLocal = $this->params()->fromRoute('local');
+        // check for local file
+        if ($flagLocal) {
+            $configFile = $path . '/config/autoload/local.php';
 
-        if ($isLocal) {
-            $appdir = getcwd();
-            $configFile = new Config($appdir . '/config/autoload/local.php');
-            $configFile->read($name);
-        } else {
-            $config = $sm->get('Configuration');
-            echo $name;
-            $value =  Config::findValueInArray($name, $config);
-            if (is_scalar($value)) {
-                echo ' = ' . $value;
-            } else {
-                echo ':' . PHP_EOL;
-                var_export($value);
+            // check if local config file exists
+            if (!file_exists($configFile)) {
+                return $this->sendError(
+                    'Local config file ' . $configFile . ' does not exist.'
+                );
             }
-            echo PHP_EOL;
+        } else {
+            $configFile = $path . '/config/application.config.php';
+        }
+
+        // fetch config data
+        $configData = include $configFile;
+
+        // check if local config file exists
+        if (empty($configData)) {
+            return $this->sendError(
+                'Config file ' . $configFile . ' is empty.'
+            );
+        }
+
+        // find value in array
+        $configValue = ModuleConfig::findValueInArray($configName, $configData);
+
+        // start output
+        $this->console->writeLine(
+            'Configuration file '
+            . $configFile,
+            Color::GREEN
+        );
+
+        $this->console->writeLine(
+            'Config Name "' . $configName . '":',
+            Color::LIGHT_GREEN
+        );
+
+        // check config value
+        if (is_array($configValue)) {
+            $iniWriter = new IniWriter;
+            $this->console->writeLine($iniWriter->toString($configValue));
+        } elseif (is_null($configValue)) {
+            $this->console->writeLine('NULL');
+        } else {
+            $this->console->writeLine($configValue);
         }
     }
 
+    /**
+     * Set configuration by key
+     */
     public function setAction()
     {
-        $console = $this->getServiceLocator()->get('console');
-        $sm = $this->getServiceLocator();
+        // get needed options to shorten code
+        $path        = realpath($this->requestOptions->getPath());
+        $configName  = $this->requestOptions->getConfigName();
+        $configValue = $this->requestOptions->getConfigValue();
 
-        $name = $this->params()->fromRoute('arg1');
-        $value = $this->params()->fromRoute('arg2');
-
-        if ($value === 'null') {
-            $value = null;
+        // check for config name
+        if (!$configName) {
+            return $this->sendError(
+                'config get <configName> was not provided'
+            );
         }
 
-        $appdir = getcwd();
-        $configPath = $appdir . '/config/autoload/local.php';
-        $configFile = new Config($configPath);
-        $configFile->write($name, $value);
-
-        echo 'Config file written at: ' . $configPath . PHP_EOL;
-    }
-
-    protected function getZF2Path()
-    {
-        if (getenv('ZF2_PATH')) {
-            return getenv('ZF2_PATH');
-        } elseif (get_cfg_var('zf2_path')) {
-            return get_cfg_var('zf2_path');
-        } elseif (is_dir('vendor/ZF2/library')) {
-            return 'vendor/ZF2/library';
-        } elseif (is_dir('vendor/zendframework/zendframework/library')) {
-            return 'vendor/zendframework/zendframework/library';
-        } elseif (is_dir('vendor/zendframework/zend-version')) {
-            return 'vendor/zendframework/zend-version';
+        // check for value
+        if ($configValue === 'null') {
+            $configValue = null;
         }
-        return false;
-    }
 
+        // set local config file
+        $configFile = $path . '/config/autoload/local.php';
+
+        // write local config file
+        $configData = new ModuleConfig($configFile);
+        $configData->write($configName, $configValue);
+
+        // start output
+        $this->console->writeLine(
+            'Configuration file written at ' . $configFile,
+            Color::GREEN
+        );
+    }
 }

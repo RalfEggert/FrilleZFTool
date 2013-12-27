@@ -186,21 +186,4 @@ class ClassmapController extends AbstractActionController
             $this->console->writeLine('Wrote classmap to ' . $destination, Color::GREEN);
         }
     }
-
-
-    /**
-     * Send an error message to the console
-     *
-     * @param  string $msg
-     * @return ConsoleModel
-     */
-    protected function sendError($msg)
-    {
-        $this->console->writeLine($msg, Color::RED);
-
-        $m = new ConsoleModel();
-        $m->setErrorLevel(2);
-        $m->setResult('---> aborted' . PHP_EOL);
-        return $m;
-    }
 }

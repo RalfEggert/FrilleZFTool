@@ -38,6 +38,18 @@ class RequestOptions extends AbstractOptions
      */
     protected $actionViewPath;
     /**
+     * Config name
+     *
+     * @var string
+     */
+    protected $configName;
+    /**
+     * Config value
+     *
+     * @var string
+     */
+    protected $configValue;
+    /**
      * Class name of controller
      *
      * @var string
@@ -91,6 +103,12 @@ class RequestOptions extends AbstractOptions
      * @var boolean
      */
     protected $flagIgnoreConventions;
+    /**
+     * Flag to local
+     *
+     * @var boolean
+     */
+    protected $flagLocal;
     /**
      * Flag to create no configuration
      *
@@ -214,6 +232,38 @@ class RequestOptions extends AbstractOptions
     public function setActionViewPath($actionViewPath)
     {
         $this->actionViewPath = $actionViewPath;
+    }
+
+    /**
+     * @return string
+     */
+    public function getConfigName()
+    {
+        return $this->configName;
+    }
+
+    /**
+     * @param string $configName
+     */
+    public function setConfigName($configName)
+    {
+        $this->configName = $configName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getConfigValue()
+    {
+        return $this->configValue;
+    }
+
+    /**
+     * @param string $configValue
+     */
+    public function setConfigValue($configValue)
+    {
+        $this->configValue = $configValue;
     }
 
     /**
@@ -358,6 +408,22 @@ class RequestOptions extends AbstractOptions
     public function setFlagIgnoreConventions($flagIgnoreConventions)
     {
         $this->flagIgnoreConventions = $flagIgnoreConventions;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getFlagLocal()
+    {
+        return $this->flagLocal;
+    }
+
+    /**
+     * @param boolean $flagLocal
+     */
+    public function setFlagLocal($flagLocal)
+    {
+        $this->flagLocal = $flagLocal;
     }
 
     /**
@@ -564,12 +630,16 @@ class RequestOptions extends AbstractOptions
         // single route
         $flagSingleRoute = $parameters['single-route'] || $parameters['s'];
 
+        // local
+        $flagLocal = $parameters['local'] || $parameters['l'];
+
         // set params
         $this->setFlagWithFactory($flagWithFactory);
         $this->setFlagIgnoreConventions($flagIgnoreConventions);
         $this->setFlagNoConfig($flagNoConfig);
         $this->setFlagNoDocBlocks($flagNoDocBlocks);
         $this->setFlagSingleRoute($flagSingleRoute);
+        $this->setFlagLocal($flagLocal);
 
         // check for moduleName param
         if ($parameters['moduleName']) {
@@ -744,6 +814,22 @@ class RequestOptions extends AbstractOptions
 
         // set param
         $this->setDestination($destination);
+
+        // check for configName param
+        if ($parameters['configName']) {
+            $configName = $parameters['configName'];
+
+            // set param
+            $this->setConfigName($configName);
+        }
+
+        // check for configValue param
+        if ($parameters['configvalue']) {
+            $configValue = $parameters['configvalue'];
+
+            // set param
+            $this->setConfigValue($configValue);
+        }
 
         return $this;
     }
