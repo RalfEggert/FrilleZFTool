@@ -2,6 +2,7 @@
 namespace ZFTool\Generator;
 
 use ZFTool\Options\RequestOptions;
+use Zend\File\ClassFileLocator;
 
 /**
  * Class ModuleConfigurator
@@ -390,6 +391,62 @@ class ModuleConfigurator
         } else {
             return false;
         }
+    }
+
+    /**
+     * Build classmap configuration
+     *
+     * @return bool|mixed
+     */
+    public function buildClassmapConfig($relativePath)
+    {
+        // get needed options to shorten code
+        $directory     = $this->requestOptions->getDirectory();
+        $destination   = $this->requestOptions->getDestination();
+
+        // Get the ClassFileLocator, and pass it the library path
+        $fileLocator = new ClassFileLocator($directory);
+
+        // load existing map
+        if (file_exists($destination)) {
+            $classMap = require $destination;
+        } else {
+            $classMap = array();
+        }
+
+        // Iterate over each element in the path, and create a map of
+        // classname => filename, where the filename is relative to
+        // the library path
+        foreach ($fileLocator as $file) {
+            $filename = str_replace(
+                $directory . '/',
+                '',
+                str_replace(
+                    DIRECTORY_SEPARATOR,
+                    '/',
+                    $file->getPath()
+                ) . '/' . $file->getFilename()
+            );
+
+            // Add in relative path to library
+            $filename = $relativePath . $filename;
+
+            foreach ($file->getClasses() as $class) {
+                $classMap[$class] = $filename;
+            }
+        }
+
+        // check for application config updates
+        if (count($classMap) == 0) {
+            return false;
+        }
+
+        // loop through class map
+        foreach ($classMap as $class => $file) {
+            $classMap[$class] = '__DIR__ . \'/' . $file . '\'';
+        }
+
+        return $classMap;
     }
 
     /**

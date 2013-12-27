@@ -31,6 +31,11 @@ class CreateController extends AbstractActionController
     protected $console;
 
     /**
+     * @var RequestOptions
+     */
+    protected $requestOptions;
+
+    /**
      * @var ModuleGenerator
      */
     protected $moduleGenerator;
@@ -39,11 +44,6 @@ class CreateController extends AbstractActionController
      * @var ModuleConfigurator
      */
     protected $moduleConfigurator;
-
-    /**
-     * @var RequestOptions
-     */
-    protected $requestOptions;
 
     /**
      * @param AdapterInterface $console

@@ -117,12 +117,10 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             array('--no-docblocks | -d', 'Prevent the doc block generation'),
 
             'Classmap generator:',
-            'classmap generate <directory> <classmap file> [--append|-a] [--overwrite|-w]' => '',
+            'classmap generate <directory> <classmap file>' => '',
             array('<directory>',        'The directory to scan for PHP classes (use "." to use current directory)'),
             array('<classmap file>',    'File name for generated class map file  or - for standard output. '.
                                         'If not supplied, defaults to autoload_classmap.php inside <directory>.'),
-            array('--append | -a',      'Append to classmap file if it exists'),
-            array('--overwrite | -w',   'Whether or not to overwrite existing classmap file'),
 
             'Zend Framework 2 installation:',
             'install zf <path> [<version>]' => '',

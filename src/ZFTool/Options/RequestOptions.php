@@ -74,6 +74,18 @@ class RequestOptions extends AbstractOptions
      */
     protected $controllerViewPath;
     /**
+     * Destination file
+     *
+     * @var string
+     */
+    protected $destination;
+    /**
+     * Directory to work in
+     *
+     * @var string
+     */
+    protected $directory;
+    /**
      * Flag to ignore coding standard conventions
      *
      * @var boolean
@@ -298,6 +310,38 @@ class RequestOptions extends AbstractOptions
     public function setControllerViewPath($controllerViewPath)
     {
         $this->controllerViewPath = $controllerViewPath;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDestination()
+    {
+        return $this->destination;
+    }
+
+    /**
+     * @param string $destination
+     */
+    public function setDestination($destination)
+    {
+        $this->destination = $destination;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDirectory()
+    {
+        return $this->directory;
+    }
+
+    /**
+     * @param string $directory
+     */
+    public function setDirectory($directory)
+    {
+        $this->directory = $directory;
     }
 
     /**
@@ -678,6 +722,28 @@ class RequestOptions extends AbstractOptions
             $this->setActionViewFile($actionViewFile);
             $this->setActionViewPath($actionViewPath);
         }
+
+        // check for directory param
+        if ($parameters['directory']) {
+            $directory = realpath($parameters['directory']);
+
+            // set param
+            $this->setDirectory($directory);
+        } else {
+            $directory = '';
+        }
+
+        // check for destination param
+        if ($parameters['destination']) {
+            $destination = $parameters['destination'];
+
+        } else {
+            // set default if destination not set
+            $destination = $directory . '/autoload_classmap.php';
+        }
+
+        // set param
+        $this->setDestination($destination);
 
         return $this;
     }
