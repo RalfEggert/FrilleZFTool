@@ -56,8 +56,10 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
         return array(
 
             'Basic information:',
-            'modules [list]'              => 'show loaded modules',
-            'version | --version'         => 'display current Zend Framework version',
+            'version | --version'                               => 'display current Zend Framework version',
+            'modules [<path>]'                                  => 'show loaded modules',
+            'controllers <moduleName> [<path>]'                 => 'show controllers for a module',
+            'actions <controllerName> <moduleName> [<path>]'    => 'show actions for a controller in a module',
 
             'Diagnostics',
             'diag [options] [module name]'  => 'run diagnostics',

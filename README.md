@@ -39,8 +39,10 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
 ### Basic information
 
-    zf.php modules [list]           show loaded modules
-    zf.php version | --version      display current Zend Framework version
+    zf.php version | --version                              display current Zend Framework version
+    zf.php modules [<path>]                                 show loaded modules
+    zf.php controllers <moduleName> [<path>]                show controllers for a module
+    zf.php actions <controllerName> <moduleName> [<path>]   show actions for a controller in a module
 
 ### Diagnostics
 

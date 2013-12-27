@@ -11,10 +11,9 @@ return array(
             'ZFTool\Controller\Classmap'    => 'ZFTool\Controller\ClassmapControllerFactory',
             'ZFTool\Controller\Config'      => 'ZFTool\Controller\ConfigControllerFactory',
             'ZFTool\Controller\Create'      => 'ZFTool\Controller\CreateControllerFactory',
+            'ZFTool\Controller\Info'        => 'ZFTool\Controller\InfoControllerFactory',
         ),
         'invokables' => array(
-            'ZFTool\Controller\Info'        => 'ZFTool\Controller\InfoController',
-            'ZFTool\Controller\Module'      => 'ZFTool\Controller\ModuleController',
             'ZFTool\Controller\Install'     => 'ZFTool\Controller\InstallController',
             'ZFTool\Controller\Diagnostics' => 'ZFTool\Controller\DiagnosticsController',
         ),
@@ -90,10 +89,28 @@ return array(
                 ),
                 'zftool-modules-list' => array(
                     'options' => array(
-                        'route'    => 'modules [list]',
+                        'route'    => 'modules',
                         'defaults' => array(
-                            'controller' => 'ZFTool\Controller\Module',
-                            'action'     => 'list',
+                            'controller' => 'ZFTool\Controller\Info',
+                            'action'     => 'modules',
+                        ),
+                    ),
+                ),
+                'zftool-controllers-list' => array(
+                    'options' => array(
+                        'route'    => 'controllers <moduleName> [<path>]',
+                        'defaults' => array(
+                            'controller' => 'ZFTool\Controller\Info',
+                            'action'     => 'controllers',
+                        ),
+                    ),
+                ),
+                'zftool-actions-list' => array(
+                    'options' => array(
+                        'route'    => 'actions <controllerName> <moduleName> [<path>]',
+                        'defaults' => array(
+                            'controller' => 'ZFTool\Controller\Info',
+                            'action'     => 'actions',
                         ),
                     ),
                 ),
@@ -177,5 +194,5 @@ return array(
         'ZF' => array(
             'PHP Version' => array('ZFTool\Diagnostics\Test\PhpVersion', '5.3.3'),
         )
-    )
+    ),
 );
