@@ -36,7 +36,8 @@ class VerboseConsole extends AbstractReporter
         $this->width = $this->console->getWidth();
         $this->total = count($e->getParam('tests'));
 
-        $this->console->writeLine('Starting diagnostics:');
+        $this->console->writeLine('Running diagnostics:');
+        $this->console->writeLine('');
     }
 
     public function onAfterRun(RunEvent $e)
@@ -50,7 +51,7 @@ class VerboseConsole extends AbstractReporter
         }
 
         if ($this->displayData && ($data = $result->getData())) {
-            $descr .= PHP_EOL . str_repeat('-', $this->width - 7);
+            $descr .= PHP_EOL . str_repeat('-', $this->width - 15);
             $data = $result->getData();
             if(is_object($data) && $data instanceof \Exception){
                 $descr .= PHP_EOL . get_class($data) . PHP_EOL . $data->getMessage() . $data->getTraceAsString();
@@ -58,55 +59,58 @@ class VerboseConsole extends AbstractReporter
                 $descr .= PHP_EOL . @var_export($result->getData(), true);
             }
 
-            $descr .= PHP_EOL . str_repeat('-', $this->width - 7);
+            $descr .= PHP_EOL . str_repeat('-', $this->width - 15);
         }
 
         // Draw status line
         if ($result instanceof Success) {
-            $this->console->write('  OK  ', Color::WHITE, Color::GREEN);
+            $this->console->write('       ');
+            $this->console->write('  OK  ', Color::NORMAL, Color::GREEN);
             $this->console->writeLine(
                 $this->strColPad(
                     $descr,
-                    $this->width - 7,
-                    '       '
+                    $this->width - 15,
+                    '              '
                 ), Color::GREEN
             );
         } elseif ($result instanceof Failure) {
+            $this->console->write('       ');
             $this->console->write(' FAIL ', Color::WHITE, Color::RED);
             $this->console->writeLine(
                 $this->strColPad(
                     $descr,
-                    $this->width - 7,
-                    '       '
+                    $this->width - 15,
+                    '              '
                 ), Color::RED
             );
         } elseif ($result instanceof Warning) {
+            $this->console->write('       ');
             $this->console->write(' WARN ', Color::NORMAL, Color::YELLOW);
             $this->console->writeLine(
                 $this->strColPad(
                     $descr,
-                    $this->width - 7,
-                    '       '
+                    $this->width - 15,
+                    '              '
                 ), Color::YELLOW
             );
         } else {
+            $this->console->write('       ');
             $this->console->write(' ???? ', Color::NORMAL, Color::YELLOW);
             $this->console->writeLine(
                 $this->strColPad(
                     $descr,
                     $this->width - 7,
-                    '       '
+                    '              '
                 ), Color::YELLOW
             );
         }
+        $this->console->writeLine();
     }
 
     public function onFinish(RunEvent $e)
     {
         /* @var $results \ZFTool\Diagnostics\Result\Collection */
         $results = $e->getResults();
-
-        $this->console->writeLine();
 
         // Display information that the test has been aborted.
         if ($this->stopped) {
@@ -116,27 +120,39 @@ class VerboseConsole extends AbstractReporter
 
         // Display a summary line
         if ($results->getFailureCount() == 0 && $results->getWarningCount() == 0 && $results->getUnknownCount() == 0) {
-            $line = 'OK (' . $this->total . ' diagnostic tests)';
+            $this->console->write(
+                '  OK  ',
+                Color::NORMAL,
+                Color::GREEN
+            );
+            $this->console->write(' ');
             $this->console->writeLine(
-                str_pad($line, $this->width - 1, ' ', STR_PAD_RIGHT),
-                Color::NORMAL, Color::GREEN
+                str_pad(' (' . $this->total . ' diagnostic tests)', $this->width - 8, ' ', STR_PAD_RIGHT),
+                Color::NORMAL,
+                Color::GREEN
             );
         } elseif ($results->getFailureCount() == 0) {
-            $line = $results->getWarningCount() . ' warnings, ';
+            $line = ' (' . $results->getWarningCount() . ' warnings, ';
             $line .= $results->getSuccessCount() . ' successful tests';
 
             if ($results->getUnknownCount() > 0) {
                 $line .= ', ' . $results->getUnknownCount() . ' unknown test results';
             }
 
-            $line .= '.';
+            $line .= ')';
 
+            $this->console->write(
+                ' WARN ',
+                Color::NORMAL,
+                Color::YELLOW
+            );
+            $this->console->write(' ');
             $this->console->writeLine(
-                str_pad($line, $this->width - 1, ' ', STR_PAD_RIGHT),
+                str_pad($line, $this->width - 8, ' ', STR_PAD_RIGHT),
                 Color::NORMAL, Color::YELLOW
             );
         } else {
-            $line = $results->getFailureCount() . ' failures, ';
+            $line = ' (' . $results->getFailureCount() . ' failures, ';
             $line .= $results->getWarningCount() . ' warnings, ';
             $line .= $results->getSuccessCount() . ' successful tests';
 
@@ -144,10 +160,16 @@ class VerboseConsole extends AbstractReporter
                 $line .= ', ' . $results->getUnknownCount() . ' unknown test results';
             }
 
-            $line .= '.';
+            $line .= ')';
 
+            $this->console->write(
+                ' FAIL ',
+                Color::NORMAL,
+                Color::RED
+            );
+            $this->console->write(' ');
             $this->console->writeLine(
-                str_pad($line, $this->width, ' ', STR_PAD_RIGHT),
+                str_pad($line, $this->width - 8, ' ', STR_PAD_RIGHT),
                 Color::NORMAL, Color::RED
             );
         }

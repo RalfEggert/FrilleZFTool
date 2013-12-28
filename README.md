@@ -52,7 +52,7 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
     -v --verbose        Display detailed information.
     -b --break          Stop testing on first failure.
     -q --quiet          Do not display any output unless an error occurs.
-    --debug             Display raw debug info from tests.
+    -d --debug          Display raw debug info from tests.
 
 ### Project creation
 
@@ -75,7 +75,7 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 	<controllerName>            The name of the controller to be created
 	<moduleName>                The module in which the controller should be created
 	<path>                      The root path of a ZF2 application where to create the controller
-    --with-factory | -f         Create a factory for the controller
+    --factory | -f              Create a factory for the controller
     --ignore-conventions | -i   Ignore coding conventions
     --no-config | -n            Prevent that module configuration is updated
     --no-docblocks | -d         Prevent the doc block generation

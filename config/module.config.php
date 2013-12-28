@@ -11,11 +11,9 @@ return array(
             'ZFTool\Controller\Classmap'    => 'ZFTool\Controller\ClassmapControllerFactory',
             'ZFTool\Controller\Config'      => 'ZFTool\Controller\ConfigControllerFactory',
             'ZFTool\Controller\Create'      => 'ZFTool\Controller\CreateControllerFactory',
+            'ZFTool\Controller\Diagnostics' => 'ZFTool\Controller\DiagnosticsControllerFactory',
             'ZFTool\Controller\Info'        => 'ZFTool\Controller\InfoControllerFactory',
             'ZFTool\Controller\Install'     => 'ZFTool\Controller\InstallControllerFactory',
-        ),
-        'invokables' => array(
-            'ZFTool\Controller\Diagnostics' => 'ZFTool\Controller\DiagnosticsController',
         ),
     ),
 
@@ -64,7 +62,7 @@ return array(
                 ),
                 'zftool-config-list' => array(
                     'options' => array(
-                        'route'    => 'config list [--local|-l]',
+                        'route'    => 'config list [--local|-l]:local',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Config',
                             'action'     => 'list',
@@ -73,7 +71,7 @@ return array(
                 ),
                 'zftool-config' => array(
                     'options' => array(
-                        'route'    => 'config <action> <configName> [<configvalue>] [--local|-l]',
+                        'route'    => 'config <action> <configName> [<configvalue>] [--local|-l]:local',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Config',
                             'action'     => 'get',
@@ -127,7 +125,7 @@ return array(
                 ),
                 'zftool-create-module' => array(
                     'options' => array(
-                        'route'    => 'create module <moduleName> [<path>] [--ignore-conventions|-i] [--no-docblocks|-d]',
+                        'route'    => 'create module <moduleName> [<path>] [--ignore-conventions|-i]:ignoreConventions [--no-docblocks|-d]:noDocblocks',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'module',
@@ -136,7 +134,7 @@ return array(
                 ),
                 'zftool-create-controller' => array(
                     'options' => array(
-                        'route'    => 'create controller <controllerName> <moduleName> [<path>] [--with-factory|-f] [--ignore-conventions|-i] [--no-config|-n] [--no-docblocks|-d]',
+                        'route'    => 'create controller <controllerName> <moduleName> [<path>] [--factory|-f]:factory [--ignore-conventions|-i]:ignoreConventions [--no-config|-n]:noConfig [--no-docblocks|-d]:noDocblocks',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'controller',
@@ -145,7 +143,7 @@ return array(
                 ),
                 'zftool-create-action' => array(
                     'options' => array(
-                        'route'    => 'create action <actionName> <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-docblocks|-d]',
+                        'route'    => 'create action <actionName> <controllerName> <moduleName> [<path>] [--ignore-conventions|-i]:ignoreConventions [--no-docblocks|-d]:noDocblocks',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'method',
@@ -154,7 +152,7 @@ return array(
                 ),
                 'zftool-create-routing' => array(
                     'options' => array(
-                        'route'    => 'create routing <moduleName> [<path>] [--single-route|-s]',
+                        'route'    => 'create routing <moduleName> [<path>] [--single-route|-s]:singleRoute',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'routing',
@@ -163,7 +161,7 @@ return array(
                 ),
                 'zftool-create-controller-factory' => array(
                     'options' => array(
-                        'route'    => 'create controller-factory <controllerName> <moduleName> [<path>] [--no-config|-n] [--no-docblocks|-d]',
+                        'route'    => 'create controller-factory <controllerName> <moduleName> [<path>] [--no-config|-n]:noConfig [--no-docblocks|-d]:noDocblocks',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'controller-factory',
@@ -181,7 +179,7 @@ return array(
                 ),
                 'zftool-diagnostics' => array(
                     'options' => array(
-                        'route'    => '(diagnostics|diag) [-v|--verbose]:verbose [--debug] [-q|--quiet]:quiet [-b|--break]:break [<testGroupName>]',
+                        'route'    => '(diagnostics|diag) [-v|--verbose]:verbose [-d|--debug]:debug [-q|--quiet]:quiet [-b|--break]:break [<testGroupName>]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Diagnostics',
                             'action'     => 'run',

@@ -98,6 +98,18 @@ class RequestOptions extends AbstractOptions
      */
     protected $directory;
     /**
+     * Flag for break mode
+     *
+     * @var boolean
+     */
+    protected $flagBreak;
+    /**
+     * Flag for debug mode
+     *
+     * @var boolean
+     */
+    protected $flagDebug;
+    /**
      * Flag to ignore coding standard conventions
      *
      * @var boolean
@@ -122,11 +134,23 @@ class RequestOptions extends AbstractOptions
      */
     protected $flagNoDocBlocks;
     /**
+     * Flag for quiet mode
+     *
+     * @var boolean
+     */
+    protected $flagQuiet;
+    /**
      * Flag to create a single route for a module
      *
      * @var boolean
      */
     protected $flagSingleRoute;
+    /**
+     * Flag for verbose mode
+     *
+     * @var boolean
+     */
+    protected $flagVerbose;
     /**
      * Flag to create a factory for the class
      *
@@ -163,6 +187,12 @@ class RequestOptions extends AbstractOptions
      * @var string
      */
     protected $path;
+    /**
+     * Test group name for diagnostics
+     *
+     * @var string
+     */
+    protected $testGroupName;
     /**
      * Current temporary directory
      *
@@ -403,6 +433,38 @@ class RequestOptions extends AbstractOptions
     /**
      * @return boolean
      */
+    public function getFlagBreak()
+    {
+        return $this->flagBreak;
+    }
+
+    /**
+     * @param boolean $flagBreak
+     */
+    public function setFlagBreak($flagBreak)
+    {
+        $this->flagBreak = (boolean)$flagBreak;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getFlagDebug()
+    {
+        return $this->flagDebug;
+    }
+
+    /**
+     * @param boolean $flagDebug
+     */
+    public function setFlagDebug($flagDebug)
+    {
+        $this->flagDebug = (boolean)$flagDebug;
+    }
+
+    /**
+     * @return boolean
+     */
     public function getFlagIgnoreConventions()
     {
         return $this->flagIgnoreConventions;
@@ -413,7 +475,7 @@ class RequestOptions extends AbstractOptions
      */
     public function setFlagIgnoreConventions($flagIgnoreConventions)
     {
-        $this->flagIgnoreConventions = $flagIgnoreConventions;
+        $this->flagIgnoreConventions = (boolean)$flagIgnoreConventions;
     }
 
     /**
@@ -429,7 +491,7 @@ class RequestOptions extends AbstractOptions
      */
     public function setFlagLocal($flagLocal)
     {
-        $this->flagLocal = $flagLocal;
+        $this->flagLocal = (boolean)$flagLocal;
     }
 
     /**
@@ -445,7 +507,7 @@ class RequestOptions extends AbstractOptions
      */
     public function setFlagNoConfig($flagNoConfig)
     {
-        $this->flagNoConfig = $flagNoConfig;
+        $this->flagNoConfig = (boolean)$flagNoConfig;
     }
 
     /**
@@ -461,7 +523,23 @@ class RequestOptions extends AbstractOptions
      */
     public function setFlagNoDocBlocks($flagNoDocBlocks)
     {
-        $this->flagNoDocBlocks = $flagNoDocBlocks;
+        $this->flagNoDocBlocks = (boolean)$flagNoDocBlocks;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getFlagQuiet()
+    {
+        return $this->flagQuiet;
+    }
+
+    /**
+     * @param boolean $flagQuiet
+     */
+    public function setFlagQuiet($flagQuiet)
+    {
+        $this->flagQuiet = (boolean)$flagQuiet;
     }
 
     /**
@@ -477,7 +555,23 @@ class RequestOptions extends AbstractOptions
      */
     public function setFlagSingleRoute($flagSingleRoute)
     {
-        $this->flagSingleRoute = $flagSingleRoute;
+        $this->flagSingleRoute = (boolean)$flagSingleRoute;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getFlagVerbose()
+    {
+        return $this->flagVerbose;
+    }
+
+    /**
+     * @param boolean $flagVerbose
+     */
+    public function setFlagVerbose($flagVerbose)
+    {
+        $this->flagVerbose = (boolean)$flagVerbose;
     }
 
     /**
@@ -493,7 +587,7 @@ class RequestOptions extends AbstractOptions
      */
     public function setFlagWithFactory($flagWithFactory)
     {
-        $this->flagWithFactory = $flagWithFactory;
+        $this->flagWithFactory = (boolean)$flagWithFactory;
     }
 
     /**
@@ -579,6 +673,22 @@ class RequestOptions extends AbstractOptions
     /**
      * @return string
      */
+    public function getTestGroupName()
+    {
+        return $this->testGroupName;
+    }
+
+    /**
+     * @param string $testGroupName
+     */
+    public function setTestGroupName($testGroupName)
+    {
+        $this->testGroupName = $testGroupName;
+    }
+
+    /**
+     * @return string
+     */
     public function getTmpDir()
     {
         return $this->tmpDir;
@@ -636,38 +746,30 @@ class RequestOptions extends AbstractOptions
         $this->setTmpDir(sys_get_temp_dir());
         $this->setPath($path);
 
-        // with factory
-        $flagWithFactory = $parameters['with-factory'] || $parameters['f'];
-
-        // ignore conventions
-        $flagIgnoreConventions = $parameters['ignore-conventions']
-            || $parameters['i'];
-
-        // no docblock
-        $flagNoDocBlocks = $parameters['no-docblocks'] || $parameters['d'];
-
-        // no config writing
-        $flagNoConfig = $parameters['no-config'] || $parameters['n'];
-
-        // single route
-        $flagSingleRoute = $parameters['single-route'] || $parameters['s'];
-
-        // local
-        $flagLocal = $parameters['local'] || $parameters['l'];
-
         // set params
-        $this->setFlagWithFactory($flagWithFactory);
-        $this->setFlagIgnoreConventions($flagIgnoreConventions);
-        $this->setFlagNoConfig($flagNoConfig);
-        $this->setFlagNoDocBlocks($flagNoDocBlocks);
-        $this->setFlagSingleRoute($flagSingleRoute);
-        $this->setFlagLocal($flagLocal);
+        $this->setFlagWithFactory($parameters['factory']);
+        $this->setFlagIgnoreConventions($parameters['ignoreConventions']);
+        $this->setFlagNoConfig($parameters['noConfig']);
+        $this->setFlagNoDocBlocks($parameters['noDocblocks']);
+        $this->setFlagSingleRoute($parameters['singleRoute']);
+        $this->setFlagLocal($parameters['local']);
+        $this->setFlagDebug($parameters['debug']);
+        $this->setFlagVerbose($parameters['verbose']);
+        $this->setFlagQuiet($parameters['quiet']);
+        $this->setFlagBreak($parameters['break']);
+
+        // correct quiet mode of debug or verbose is set
+        if (($this->getFlagDebug() || $this->getFlagVerbose())
+            && $this->getFlagQuiet()
+        ) {
+            $this->setFlagQuiet(false);
+        }
 
         // check for moduleName param
         if ($parameters['moduleName']) {
             $moduleName = $parameters['moduleName'];
 
-            if (!$flagIgnoreConventions) {
+            if (!$this->getFlagIgnoreConventions()) {
                 $moduleName = StaticFilter::execute(
                     $moduleName, 'Word\UnderscoreToCamelCase'
                 );
@@ -709,7 +811,7 @@ class RequestOptions extends AbstractOptions
         if ($parameters['controllerName']) {
             $controllerName = $parameters['controllerName'];
 
-            if (!$flagIgnoreConventions) {
+            if (!$this->getFlagIgnoreConventions()) {
                 $controllerName = StaticFilter::execute(
                     $controllerName, 'Word\UnderscoreToCamelCase'
                 );
@@ -781,7 +883,7 @@ class RequestOptions extends AbstractOptions
         if ($parameters['actionName']) {
             $actionName = $parameters['actionName'];
 
-            if (!$flagIgnoreConventions) {
+            if (!$this->getFlagIgnoreConventions()) {
                 $actionName = StaticFilter::execute(
                     $actionName, 'Word\UnderScoreToDash'
                 );
@@ -859,6 +961,14 @@ class RequestOptions extends AbstractOptions
 
             // set param
             $this->setVersion($version);
+        }
+
+        // check for testGroupName param
+        if ($parameters['testGroupName']) {
+            $testGroupName = $parameters['testGroupName'];
+
+            // set param
+            $this->setTestGroupName($testGroupName);
         }
 
         return $this;

@@ -43,8 +43,9 @@ class BasicConsole extends AbstractReporter
             $this->gutter = ($this->countLength * 2) + 11;
         }
 
-        $this->console->writeLine('Starting diagnostics:');
+        $this->console->writeLine('Running diagnostics:');
         $this->console->writeLine('');
+        $this->console->write('       ');
     }
 
     public function onAfterRun(RunEvent $e)
@@ -90,27 +91,39 @@ class BasicConsole extends AbstractReporter
 
         // Display a summary line
         if ($results->getFailureCount() == 0 && $results->getWarningCount() == 0 && $results->getUnknownCount() == 0) {
-            $line = 'OK (' . $this->total . ' diagnostic tests)';
+            $this->console->write(
+                '  OK  ',
+                Color::NORMAL,
+                Color::GREEN
+            );
+            $this->console->write(' ');
             $this->console->writeLine(
-                str_pad($line, $this->width-1, ' ', STR_PAD_RIGHT),
-                Color::NORMAL, Color::GREEN
+                str_pad(' (' . $this->total . ' diagnostic tests)', $this->width - 8, ' ', STR_PAD_RIGHT),
+                Color::NORMAL,
+                Color::GREEN
             );
         } elseif ($results->getFailureCount() == 0) {
-            $line = $results->getWarningCount() . ' warnings, ';
+            $line = ' ('. $results->getWarningCount() . ' warnings, ';
             $line .= $results->getSuccessCount() . ' successful tests';
 
             if ($results->getUnknownCount() > 0) {
                 $line .= ', ' . $results->getUnknownCount() . ' unknown test results';
             }
 
-            $line .= '.';
+            $line .= ')';
 
+            $this->console->write(
+                ' WARN ',
+                Color::NORMAL,
+                Color::YELLOW
+            );
+            $this->console->write(' ');
             $this->console->writeLine(
-                str_pad($line, $this->width-1, ' ', STR_PAD_RIGHT),
+                str_pad($line, $this->width - 8, ' ', STR_PAD_RIGHT),
                 Color::NORMAL, Color::YELLOW
             );
         } else {
-            $line = $results->getFailureCount() . ' failures, ';
+            $line = ' ('. $results->getFailureCount() . ' failures, ';
             $line .= $results->getWarningCount() . ' warnings, ';
             $line .= $results->getSuccessCount() . ' successful tests';
 
@@ -118,10 +131,16 @@ class BasicConsole extends AbstractReporter
                 $line .= ', ' . $results->getUnknownCount() . ' unknown test results';
             }
 
-            $line .= '.';
+            $line .= ')';
 
+            $this->console->write(
+                ' FAIL ',
+                Color::NORMAL,
+                Color::RED
+            );
+            $this->console->write(' ');
             $this->console->writeLine(
-                str_pad($line, $this->width, ' ', STR_PAD_RIGHT),
+                str_pad($line, $this->width - 8, ' ', STR_PAD_RIGHT),
                 Color::NORMAL, Color::RED
             );
         }
@@ -135,24 +154,24 @@ class BasicConsole extends AbstractReporter
             $result = $results[$test];
 
             if ($result instanceof Failure) {
-                $this->console->writeLine('Failure: ' . $test->getLabel(), Color::RED);
+                $this->console->writeLine('       Failure: ' . $test->getLabel(), Color::RED);
                 $message = $result->getMessage();
                 if ($message) {
-                    $this->console->writeLine($message, Color::RED);
+                    $this->console->writeLine('       => ' . $message, Color::RED);
                 }
                 $this->console->writeLine();
             } elseif ($result instanceof Warning) {
-                $this->console->writeLine('Warning: ' . $test->getLabel(), Color::YELLOW);
+                $this->console->writeLine('       Warning: ' . $test->getLabel(), Color::YELLOW);
                 $message = $result->getMessage();
                 if ($message) {
-                    $this->console->writeLine($message, Color::YELLOW);
+                    $this->console->writeLine('       => ' . $message, Color::YELLOW);
                 }
                 $this->console->writeLine();
             } elseif (!$result instanceof Success) {
-                $this->console->writeLine('Unknown result ' . get_class($result) . ': ' . $test->getLabel(), Color::YELLOW);
+                $this->console->writeLine('       Unknown result ' . get_class($result) . ': ' . $test->getLabel(), Color::YELLOW);
                 $message = $result->getMessage();
                 if ($message) {
-                    $this->console->writeLine($message, Color::YELLOW);
+                    $this->console->writeLine('       => ' . $message, Color::YELLOW);
                 }
                 $this->console->writeLine();
             }
@@ -160,7 +179,15 @@ class BasicConsole extends AbstractReporter
 
         // Display information that the test has been aborted.
         if ($this->stopped) {
+            $this->console->write(
+                ' STOP ',
+                Color::NORMAL,
+                Color::RED
+            );
+            $this->console->write(' ');
+
             $this->console->writeLine('Diagnostics aborted because of a failure.', Color::RED);
+            $this->console->writeLine();
         }
     }
 

@@ -67,7 +67,7 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             array('-v --verbose'                , 'Display detailed information.'),
             array('-b --break'                  , 'Stop testing on first failure'),
             array('-q --quiet'                  , 'Do not display any output unless an error occurs.'),
-            array('--debug'                     , 'Display raw debug info from tests.'),
+            array('-d --debug'                     , 'Display raw debug info from tests.'),
 
             'Application configuration:',
             'config list'               => 'list all configuration options',
@@ -90,7 +90,7 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             array('<controllerName>', 'The name of the controller to be created'),
             array('<moduleName>', 'The module in which the controller should be created'),
             array('<path>', 'The root path of a ZF2 application where to create the controller'),
-            array('--with-factory | -f', 'Create a factory for the controller'),
+            array('--factory | -f', 'Create a factory for the controller'),
             array('--ignore-conventions | -i', 'Ignore coding conventions'),
             array('--no-config | -n', 'Prevent that module configuration is updated'),
             array('--no-docblocks | -d', 'Prevent the doc block generation'),
