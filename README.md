@@ -160,7 +160,16 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
    * input filters
    * hydrators
  * Write tests for Generator, Configurator, Controller [NOT STARTED YET]
- * Create configuration for `Zend\Translate` [NOT STARTED YET]
+   * generator
+   * configurator
+   * controller
+   * option class
+ * Create skeleton configuration for [NOT STARTED YET]
+   * `Zend\Translate`
  * Turn module caching on/off, check writable caching dir [NOT STARTED YET]
- * Add module inspections (e.g. check Module.php class) [NOT STARTED YET]
-
+ * Add module inspections  [NOT STARTED YET]
+   * Ensuring that `Module.php` has a zero-argument constructor
+   * Ensuring that `getConfig()` returns serializable config
+   * Ensuring that `Module.php` does not retain global state (no statics)
+   * Ensuring that config returned by `get[A-Za-z]+Config()` produces arrays compatible with `Zend\ServiceManager\Config`
+ * to be continued
