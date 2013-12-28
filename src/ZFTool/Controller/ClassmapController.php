@@ -54,12 +54,15 @@ class ClassmapController extends AbstractActionController
     }
 
     /**
-     * Generate class map
+     * Generate classmap
      *
      * @return ConsoleModel
      */
     public function generateAction()
     {
+        // output header
+        $this->consoleHeader('Generating classmap');
+
         // get needed options to shorten code
         $directory     = $this->requestOptions->getDirectory();
         $destination   = $this->requestOptions->getDestination();
@@ -69,21 +72,32 @@ class ClassmapController extends AbstractActionController
         // Validate directory
         if (!is_dir($directory)) {
             return $this->sendError(
-                'Invalid library directory provided "' . $directory . '".'
+                array(
+                    array(Color::NORMAL => 'Invalid library directory provided '),
+                    array(Color::RED    => $directory),
+                    array(Color::NORMAL => '.'),
+                )
             );
         }
 
         // check that destination file is not a directory
         if (is_dir($destination)) {
             return $this->sendError(
-                'Invalid output file provided.'
+                array(
+                    array(Color::RED    => $destination),
+                    array(Color::NORMAL => ' is not a valid output file.'),
+                )
             );
         }
 
         // check that destination file is writable
         if (!is_writeable(dirname($destination))) {
             return $this->sendError(
-                'Cannot write to "' . $directory . '".'
+                array(
+                    array(Color::NORMAL => 'Cannot write to '),
+                    array(Color::RED    => $destination),
+                    array(Color::NORMAL => '.'),
+                )
             );
         }
 
@@ -126,47 +140,31 @@ class ClassmapController extends AbstractActionController
 
         // start output
         if (!$usingStdout) {
-            $this->console->writeLine(
-                'Creating classmap file for library in ' . $directory,
-                Color::YELLOW
-            );
-            $this->console->write('Scanning for files containing PHP classes ');
+            $this->console->writeLine('       => Scanning for files containing PHP classes ');
         }
 
-        // generate new class map
+        // generate new classmap
         $classMap = $this->moduleConfigurator->buildClassmapConfig(
             $relativePath
         );
 
         // Check if we have found any PHP classes.
         if (!$classMap) {
-            $this->console->writeLine(' DONE', Color::RED);
-
             return $this->sendError(
-                'Cannot find any PHP classes in "' . $directory . '".'
+                array(
+                    array(Color::NORMAL => 'Cannot find any PHP classes in '),
+                    array(Color::RED    => $directory),
+                    array(Color::NORMAL => '.'),
+                )
             );
-        } else {
-            foreach ($classMap as $file) {
-                $this->console->write('.');
-            }
         }
 
         // continue output
         if (!$usingStdout) {
-            $this->console->writeLine(' DONE', Color::GREEN);
-            $this->console->write('Found ');
+            $this->console->write('       => Found ');
             $this->console->write(count($classMap), Color::GREEN);
             $this->console->writeLine(' PHP classes');
-            $this->console->write('Creating classmap code ');
-            foreach ($classMap as $file) {
-                $this->console->write('.');
-            }
-        }
-
-        // continue output
-        if (!$usingStdout) {
-            $this->console->writeLine(' DONE', Color::GREEN);
-            $this->console->write('Writing classmap to '. $destination);
+            $this->console->writeLine('       => Writing classmap');
         }
 
         // update module configuration
@@ -174,16 +172,24 @@ class ClassmapController extends AbstractActionController
             $classMap, $destination, true
         );
 
-        // end output
+        // continue output
         if (!$usingStdout) {
-            $this->console->writeLine(' DONE', Color::GREEN);
+            $this->console->writeLine('       => Update module class to use classmap for autoloading');
         }
-        // update module class with class map autoloading
+        // update module class with classmap autoloading
         $this->moduleGenerator->updateModuleWithClassmapAutoloader();
 
         // end output
         if (!$usingStdout) {
-            $this->console->writeLine('Wrote classmap to ' . $destination, Color::GREEN);
+            $this->console->writeLine();
+            $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+            $this->console->write(' ');
+            $this->console->write('Wrote classmap to ');
+            $this->console->writeLine($destination, Color::GREEN);
         }
+
+        // output footer
+        $this->consoleFooter('classmap was successfully generated');
+
     }
 }

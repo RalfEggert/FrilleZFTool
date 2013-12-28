@@ -36,11 +36,19 @@ class SendError extends AbstractPlugin
      */
     public function __invoke($msg)
     {
-        $this->console->writeLine($msg, Color::RED);
+        $this->console->write(' Oops ', Color::NORMAL, Color::RED);
+        $this->console->write(' ');
 
-        $m = new ConsoleModel();
-        $m->setErrorLevel(2);
-        $m->setResult('---> aborted' . PHP_EOL);
-        return $m;
+        if (is_array($msg)) {
+            foreach ($msg as $msgBlock) {
+                $this->console->write(current($msgBlock), key($msgBlock));
+            }
+        } else {
+            $this->console->write($msg);
+        }
+
+        $this->console->writeLine();
+
+        $this->getController()->consoleFooter('an error occured', false);
     }
 }

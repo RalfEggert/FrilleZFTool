@@ -12,7 +12,7 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterface, ConfigProviderInterface
 {
-    const NAME    = 'ZFTool - Zend Framework 2 command line Tool, forked by Ralf Eggert';
+    const NAME    = 'ZFTool - Zend Framework 2 command line Tool, forked and pimped by Ralf Eggert';
 
     /**
      * @var ServiceLocatorInterface

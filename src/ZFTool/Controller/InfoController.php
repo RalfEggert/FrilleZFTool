@@ -45,20 +45,34 @@ class InfoController extends AbstractActionController
      */
     public function versionAction()
     {
+        // output header
+        $this->consoleHeader('Fetching requested information');
+
         // get uf2 path
         $zf2Path = $this->getZF2Path();
 
         // fetch Version file
         if (file_exists($zf2Path . '/Zend/Version/Version.php')) {
             require_once $zf2Path . '/Zend/Version/Version.php';
-            $msg = 'The application in this folder is using Zend Framework ';
+            $msg = 'The application in this folder is using ';
         } else {
-            $msg = 'The ZFTool is using Zend Framework ';
+            $msg = 'The ZFTool is using ';
         }
 
         // start output
-        $this->console->writeLine(Module::NAME, Color::GREEN);
-        $this->console->writeLine($msg . Version::VERSION);
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+        $this->console->writeLine($msg);
+        $this->console->writeLine();
+        $this->console->writeLine(
+            '       => ' . 'Zend Framework '
+            . Version::VERSION,
+            Color::GREEN
+        );
+
+        // output footer
+        $this->consoleFooter('requested info was successfully displayed');
+
     }
 
     /**
@@ -66,6 +80,9 @@ class InfoController extends AbstractActionController
      */
     public function modulesAction()
     {
+        // output header
+        $this->consoleHeader('Fetching requested information');
+
         // get needed options to shorten code
         $path = realpath($this->requestOptions->getPath());
 
@@ -75,20 +92,30 @@ class InfoController extends AbstractActionController
         // check modules
         if (empty($modules)) {
             return $this->sendError(
-                'No modules installed. Are you in the root folder of a ZF2 app?'
+                array(
+                    array(Color::NORMAL => 'No modules installed. Are you in the root folder of a ZF2 app?'),
+                )
             );
         }
 
         // start output
-        $this->console->writeLine(
-            'Modules installed in ' . $path . ':',
-            Color::GREEN
-        );
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+        $this->console->write('Modules installed in ');
+        $this->console->write($path, Color::GREEN);
+        $this->console->writeLine(PHP_EOL);
 
         // output modules
         foreach ($modules as $module) {
-            $this->console->writeLine(' - ' . $module);
+            $this->console->writeLine(
+                '       => ' . $module,
+                Color::GREEN
+            );
         }
+
+        // output footer
+        $this->consoleFooter('requested info was successfully displayed');
+
     }
 
     /**
@@ -96,6 +123,9 @@ class InfoController extends AbstractActionController
      */
     public function controllersAction()
     {
+        // output header
+        $this->consoleHeader('Fetching requested information');
+
         // get needed options to shorten code
         $path       = $this->requestOptions->getPath();
         $moduleName = $this->requestOptions->getModuleName();
@@ -106,15 +136,22 @@ class InfoController extends AbstractActionController
             || !file_exists($path . '/config/application.config.php')
         ) {
             return $this->sendError(
-                'The path ' . $path . ' doesn\'t contain a ZF2 application. '
-                . 'I cannot find a module here.'
+                array(
+                    array(Color::NORMAL => 'The path '),
+                    array(Color::RED    => realpath($path)),
+                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
             );
         }
 
         // check if module exists
         if (!file_exists($modulePath)) {
             return $this->sendError(
-                'The module ' . $moduleName . ' does not exist.'
+                array(
+                    array(Color::NORMAL => 'The module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => ' does not exist.'),
+                )
             );
         }
 
@@ -124,22 +161,35 @@ class InfoController extends AbstractActionController
         // check controllers
         if (empty($controllers)) {
             return $this->sendError(
-                'No controllers availabel for module ' . $moduleName .  '.'
+                array(
+                    array(Color::NORMAL => 'No controllers available for module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => '.'),
+                )
             );
         }
 
         // start output
-        $this->console->writeLine(
-            'Controllers available in module ' . $moduleName . ':',
-            Color::GREEN
-        );
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+        $this->console->write('Controllers available in module ');
+        $this->console->write($moduleName, Color::GREEN);
+        $this->console->writeLine(PHP_EOL);
 
         // output controllers
         foreach ($controllers as $controllerClass => $controllerType) {
+            $this->console->write(
+                '       => ' . $controllerClass,
+                Color::GREEN
+            );
             $this->console->writeLine(
-                ' - ' . $controllerClass . ' (' . $controllerType . ')'
+                ' (' . $controllerType . ')', Color::NORMAL
             );
         }
+
+        // output footer
+        $this->consoleFooter('requested info was successfully displayed');
+
     }
 
     /**
@@ -147,6 +197,9 @@ class InfoController extends AbstractActionController
      */
     public function actionsAction()
     {
+        // output header
+        $this->consoleHeader('Fetching requested information');
+
         // get needed options to shorten code
         $path           = $this->requestOptions->getPath();
         $moduleName     = $this->requestOptions->getModuleName();
@@ -161,24 +214,35 @@ class InfoController extends AbstractActionController
             || !file_exists($path . '/config/application.config.php')
         ) {
             return $this->sendError(
-                'The path ' . $path . ' doesn\'t contain a ZF2 application. '
-                . 'I cannot find a module here.'
+                array(
+                    array(Color::NORMAL => 'The path '),
+                    array(Color::RED    => realpath($path)),
+                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
             );
         }
 
         // check if module exists
         if (!file_exists($modulePath)) {
             return $this->sendError(
-                'The module ' . $moduleName . ' does not exist.'
+                array(
+                    array(Color::NORMAL => 'The module '),
+                    array(Color::RED => $moduleName),
+                    array(Color::NORMAL => ' does not exist.'),
+                )
             );
         }
 
         // check if controller exists already in module
         if (!file_exists($controllerPath . $controllerFile)) {
             return $this->sendError(
-                'The controller "' . $controllerClass
-                . '" does not exists in module "' . $moduleName . '". '
-                . 'I cannot find any controller actions here.'
+                array(
+                    array(Color::NORMAL => 'The controller '),
+                    array(Color::RED    => $controllerName),
+                    array(Color::NORMAL => ' does not exist in module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => '.'),
+                )
             );
         }
 
@@ -190,24 +254,36 @@ class InfoController extends AbstractActionController
         // check actions
         if (empty($actions)) {
             return $this->sendError(
-                'No actions availabel for controller ' . $controllerKey
-                .  ' in module ' . $moduleName . '.'
+                array(
+                    array(Color::NORMAL => 'No actions available for controller '),
+                    array(Color::RED    => $controllerName),
+                    array(Color::NORMAL => ' in module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => '.'),
+                )
             );
         }
 
         // start output
-        $this->console->writeLine(
-            'Actions available in controller ' . $controllerKey
-            .  ' in module ' . $moduleName . ':',
-            Color::GREEN
-        );
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+        $this->console->write('Actions available in controller ');
+        $this->console->write($controllerName, Color::GREEN);
+        $this->console->write(' in module ');
+        $this->console->write($moduleName, Color::GREEN);
+        $this->console->writeLine(PHP_EOL);
 
         // output actions
         foreach ($actions as $actionMethod) {
             $this->console->writeLine(
-                ' - ' . $actionMethod . '()'
+                '       => ' . $actionMethod . '()',
+                Color::GREEN
             );
         }
+
+        // output footer
+        $this->consoleFooter('requested info was successfully displayed');
+
     }
 
     /**
@@ -223,7 +299,11 @@ class InfoController extends AbstractActionController
             $mm = $this->getServiceLocator()->get('modulemanager');
         } catch(ServiceNotFoundException $e) {
             return $this->sendError(
-                'Cannot get Zend\ModuleManager\ModuleManager instance. Is your application using it?'
+                array(
+                    array(Color::NORMAL => 'Cannot get '),
+                    array(Color::RED    => 'Zend\ModuleManager\ModuleManager'),
+                    array(Color::NORMAL => ' instance. Is your application using it?'),
+                )
             );
         }
 
@@ -248,6 +328,11 @@ class InfoController extends AbstractActionController
 
         // initialize controllers
         $controllers = array();
+
+        // check for no controllers
+        if (!isset($configData['controllers'])) {
+            return $controllers;
+        }
 
         // loop through controllers
         foreach ($configData['controllers'] as $type => $controllerList) {

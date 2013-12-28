@@ -21,7 +21,9 @@ return array(
 
     'controller_plugins' => array(
         'factories' => array(
-            'sendError' => 'ZFTool\Controller\Plugin\SendErrorFactory',
+            'sendError'     => 'ZFTool\Controller\Plugin\SendErrorFactory',
+            'consoleHeader' => 'ZFTool\Controller\Plugin\ConsoleHeaderFactory',
+            'consoleFooter' => 'ZFTool\Controller\Plugin\ConsoleFooterFactory',
         ),
     ),
 
