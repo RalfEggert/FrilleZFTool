@@ -152,10 +152,15 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
  * Create plugin for manipulating request parameters [DONE]
  * Create Factory class for given controller [DONE]
  * Add configuration for classmap generation [DONE]
- * Refactor controllers [IN PROGRESS]
- * Add module inspections (e.g. check Module.php class) [NOT STARTED YET]
+ * Refactor controllers [DONE]
+ * Create skeleton classes and configuration for  [NOT STARTED YET]
+   * view helpers
+   * controller plugins
+   * forms
+   * input filters
+   * hydrators
  * Write tests for Generator, Configurator, Controller [NOT STARTED YET]
  * Create configuration for `Zend\Translate` [NOT STARTED YET]
  * Turn module caching on/off, check writable caching dir [NOT STARTED YET]
- * Create Skeletons and configuration for view helper, controller plugin. form, input filter [NOT STARTED YET]
+ * Add module inspections (e.g. check Module.php class) [NOT STARTED YET]
 
