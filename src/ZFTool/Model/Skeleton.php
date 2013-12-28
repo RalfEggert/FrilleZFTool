@@ -77,25 +77,6 @@ class Skeleton
     }
 
     /**
-     * Export the $config array in a human readable format
-     *
-     * @param  array $config
-     * @param  integer $space the initial indentation value
-     * @return string
-     */
-    public static function exportConfig($config, $indent = 0)
-    {
-        if (empty(static::$valueGenerator)) {
-            static::$valueGenerator = new ValueGenerator();
-            static::$valueGenerator->initEnvironmentConstants();
-        }
-        static::$valueGenerator->setValue($config);
-        static::$valueGenerator->setArrayDepth($indent);
-
-        return static::$valueGenerator;
-    }
-
-    /**
      * Get stream context for proxy, if necessary
      *
      * @return null|resource

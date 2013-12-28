@@ -169,6 +169,12 @@ class RequestOptions extends AbstractOptions
      * @var string
      */
     protected $tmpDir;
+    /**
+     * ZF2 version
+     *
+     * @var string
+     */
+    protected $version;
 
     /**
      * @return string
@@ -587,6 +593,22 @@ class RequestOptions extends AbstractOptions
     }
 
     /**
+     * @return string
+     */
+    public function getVersion()
+    {
+        return $this->version;
+    }
+
+    /**
+     * @param string $version
+     */
+    public function setVersion($version)
+    {
+        $this->version = $version;
+    }
+
+    /**
      * Set options from request parameters
      *
      * @param  Parameters $parameters
@@ -829,6 +851,14 @@ class RequestOptions extends AbstractOptions
 
             // set param
             $this->setConfigValue($configValue);
+        }
+
+        // check for version param
+        if ($parameters['version']) {
+            $version = $parameters['version'];
+
+            // set param
+            $this->setVersion($version);
         }
 
         return $this;

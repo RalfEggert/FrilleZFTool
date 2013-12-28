@@ -12,9 +12,9 @@ return array(
             'ZFTool\Controller\Config'      => 'ZFTool\Controller\ConfigControllerFactory',
             'ZFTool\Controller\Create'      => 'ZFTool\Controller\CreateControllerFactory',
             'ZFTool\Controller\Info'        => 'ZFTool\Controller\InfoControllerFactory',
+            'ZFTool\Controller\Install'     => 'ZFTool\Controller\InstallControllerFactory',
         ),
         'invokables' => array(
-            'ZFTool\Controller\Install'     => 'ZFTool\Controller\InstallController',
             'ZFTool\Controller\Diagnostics' => 'ZFTool\Controller\DiagnosticsController',
         ),
     ),
