@@ -44,7 +44,7 @@ return array(
             'routes' => array(
                 'zftool-version' => array(
                     'options' => array(
-                        'route'    => 'version',
+                        'route'    => 'version [<path>]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Info',
                             'action'     => 'version',
@@ -53,28 +53,37 @@ return array(
                 ),
                 'zftool-version2' => array(
                     'options' => array(
-                        'route'    => '--version',
+                        'route'    => '--version [<path>]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Info',
                             'action'     => 'version',
                         ),
                     ),
                 ),
-                'zftool-config-list' => array(
+                'zftool-config-set' => array(
                     'options' => array(
-                        'route'    => 'config list [--local|-l]:local',
+                        'route'    => 'config set <configName> [<configvalue>] [<path>] [--local|-l]:local',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Config',
-                            'action'     => 'list',
+                            'action'     => 'set',
                         ),
                     ),
                 ),
-                'zftool-config' => array(
+                'zftool-config-get' => array(
                     'options' => array(
-                        'route'    => 'config <action> <configName> [<configvalue>] [--local|-l]:local',
+                        'route'    => 'config get <configName> [<path>] [--local|-l]:local',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Config',
                             'action'     => 'get',
+                        ),
+                    ),
+                ),
+                'zftool-config-list' => array(
+                    'options' => array(
+                        'route'    => 'config list [<path>] [--local|-l]:local',
+                        'defaults' => array(
+                            'controller' => 'ZFTool\Controller\Config',
+                            'action'     => 'list',
                         ),
                     ),
                 ),
@@ -89,7 +98,7 @@ return array(
                 ),
                 'zftool-modules-list' => array(
                     'options' => array(
-                        'route'    => 'modules',
+                        'route'    => 'modules [<path>]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Info',
                             'action'     => 'modules',

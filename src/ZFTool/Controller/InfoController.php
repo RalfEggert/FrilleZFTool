@@ -87,7 +87,7 @@ class InfoController extends AbstractActionController
         $path = realpath($this->requestOptions->getPath());
 
         // get modules
-        $modules = $this->getModulesFromService();
+        $modules = $this->getModules($path);
 
         // check modules
         if (empty($modules)) {
@@ -291,24 +291,13 @@ class InfoController extends AbstractActionController
      *
      * @return array
      */
-    protected function getModulesFromService()
+    protected function getModules($path)
     {
-        // try to load module manager
-        try{
-            /* @var $mm \Zend\ModuleManager\ModuleManager */
-            $mm = $this->getServiceLocator()->get('modulemanager');
-        } catch(ServiceNotFoundException $e) {
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'Cannot get '),
-                    array(Color::RED    => 'Zend\ModuleManager\ModuleManager'),
-                    array(Color::NORMAL => ' instance. Is your application using it?'),
-                )
-            );
-        }
+        // define config file
+        $configData = require $this->requestOptions->getPath() . '/config/application.config.php';
 
         // fetch modules
-        $modules = array_keys($mm->getLoadedModules(false));
+        $modules = $configData['modules'];
 
         // clear out ZFTool
         $modules = array_diff($modules, array('ZFTool'));
@@ -411,6 +400,8 @@ class InfoController extends AbstractActionController
             return 'vendor/zendframework/zendframework/library';
         } elseif (is_dir('vendor/zendframework/zend-version')) {
             return 'vendor/zendframework/zend-version';
+        } elseif (is_dir(realpath($this->requestOptions->getPath()) . '/vendor/zendframework/zendframework/library')) {
+            return realpath($this->requestOptions->getPath()) . '/vendor/zendframework/zendframework/library';
         }
         return false;
     }
