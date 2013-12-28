@@ -172,4 +172,5 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
    * Ensuring that `getConfig()` returns serializable config
    * Ensuring that `Module.php` does not retain global state (no statics)
    * Ensuring that config returned by `get[A-Za-z]+Config()` produces arrays compatible with `Zend\ServiceManager\Config`
+ * Re-organize help page [NOT STARTED YET]
  * to be continued
