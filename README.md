@@ -133,7 +133,7 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
 	<moduleName>        Module containing the controller
 	[<path>]            (Optional) path to a ZF2 application
-    --single  | -s       Create single standard route for the module
+    --single  | -s      Create single standard route for the module
 
 ### Application configuration
 
@@ -144,7 +144,7 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
     [<path>]            (Optional) path to a ZF2 application
     --local   | -l      Use local configuration file
 
-#### Display a single config value, i.e. "config get db.host"
+#### Display a single config value
 
     zf.php config get <configName> [<path>] [options]
 
@@ -160,20 +160,20 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
     <configValue>       Configuration value, i.e. localhost
     [<path>]            (Optional) path to a ZF2 application
 
-### Classmap generator
+### Generate a Classmap for a directory / module
 
-    zf.php classmap generate <directory> <classmap file>
+    zf.php generate classmap <directory> [<destination>]
 
-    <directory>          directory to scan for PHP classes (use "." to use current directory)
-    <classmap file>     File name for generated class map file  or - for standard output. If not supplied, defaults to
-                        autoload_classmap.php inside <directory>.
+    <directory>         Directory to scan for PHP classes (use "." to use current directory)
+    <destination>       (Optional) File name for class map file or - for standard output.
+                        Defaults to autoload_classmap.php inside <directory>.
 
 ### ZF library installation
 
     zf.php install zf <path> [<version>]
 
-    <path>               directory where to install the ZF2 library
-    <version>            version to install, if not specified uses the last available
+    <path>              Path where to install the ZF2 library
+    <version>           (Optional) Version to install, defaults to the last version available
 
 ### Compile the PHAR file
 
@@ -207,7 +207,7 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
    * forms
    * input filters
    * hydrators
- * Re-organize help page [NOT STARTED YET]
+ * Re-organize help page [IN PROGRESS]
  * Write tests for [NOT STARTED YET]
    * generator
    * configurator

@@ -8,7 +8,7 @@ return array(
 
     'controllers' => array(
         'factories' => array(
-            'ZFTool\Controller\Classmap'    => 'ZFTool\Controller\ClassmapControllerFactory',
+            'ZFTool\Controller\Generate'    => 'ZFTool\Controller\GenerateControllerFactory',
             'ZFTool\Controller\Config'      => 'ZFTool\Controller\ConfigControllerFactory',
             'ZFTool\Controller\Create'      => 'ZFTool\Controller\CreateControllerFactory',
             'ZFTool\Controller\Diagnostics' => 'ZFTool\Controller\DiagnosticsControllerFactory',
@@ -87,12 +87,12 @@ return array(
                         ),
                     ),
                 ),
-                'zftool-classmap-generate' => array(
+                'zftool-generate-classmap' => array(
                     'options' => array(
-                        'route'    => 'classmap generate [<directory>] [<destination>]',
+                        'route'    => 'generate classmap <directory> [<destination>]',
                         'defaults' => array(
-                            'controller' => 'ZFTool\Controller\Classmap',
-                            'action'     => 'generate',
+                            'controller' => 'ZFTool\Controller\Generate',
+                            'action'     => 'Classmap',
                         ),
                     ),
                 ),

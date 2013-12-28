@@ -137,9 +137,9 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             array('--apidocs | -a', 'Prevent the api doc block generation'),
 
             'Classmap generator:',
-            'classmap generate <directory> <classmap file>' => '',
+            'generate classmap <directory> [<destination>]' => '',
             array('<directory>',        'The directory to scan for PHP classes (use "." to use current directory)'),
-            array('<classmap file>',    'File name for generated class map file  or - for standard output. '.
+            array('<destination>',    'File name for generated class map file  or - for standard output. '.
                                         'If not supplied, defaults to autoload_classmap.php inside <directory>.'),
 
             'Zend Framework 2 installation:',
