@@ -159,7 +159,7 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
    * forms
    * input filters
    * hydrators
- * Write tests for Generator, Configurator, Controller [NOT STARTED YET]
+ * Write tests for [NOT STARTED YET]
    * generator
    * configurator
    * controller
