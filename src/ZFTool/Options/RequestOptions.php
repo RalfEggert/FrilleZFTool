@@ -132,7 +132,7 @@ class RequestOptions extends AbstractOptions
      *
      * @var boolean
      */
-    protected $flagNoDocBlocks;
+    protected $flagNoApiDocs;
     /**
      * Flag for quiet mode
      *
@@ -513,17 +513,17 @@ class RequestOptions extends AbstractOptions
     /**
      * @return boolean
      */
-    public function getFlagNoDocBlocks()
+    public function getFlagNoApiDocs()
     {
-        return $this->flagNoDocBlocks;
+        return $this->flagNoApiDocs;
     }
 
     /**
-     * @param boolean $flagNoDocBlocks
+     * @param boolean $flagNoApiDocs
      */
-    public function setFlagNoDocBlocks($flagNoDocBlocks)
+    public function setFlagNoApiDocs($flagNoApiDocs)
     {
-        $this->flagNoDocBlocks = (boolean)$flagNoDocBlocks;
+        $this->flagNoApiDocs = (boolean)$flagNoApiDocs;
     }
 
     /**
@@ -750,7 +750,7 @@ class RequestOptions extends AbstractOptions
         $this->setFlagWithFactory($parameters['factory']);
         $this->setFlagIgnoreConventions($parameters['ignoreConventions']);
         $this->setFlagNoConfig($parameters['noConfig']);
-        $this->setFlagNoDocBlocks($parameters['noDocblocks']);
+        $this->setFlagNoApiDocs($parameters['noApiDocs']);
         $this->setFlagSingleRoute($parameters['singleRoute']);
         $this->setFlagLocal($parameters['local']);
         $this->setFlagDebug($parameters['debug']);
@@ -948,8 +948,8 @@ class RequestOptions extends AbstractOptions
         }
 
         // check for configValue param
-        if ($parameters['configvalue']) {
-            $configValue = $parameters['configvalue'];
+        if ($parameters['configValue']) {
+            $configValue = $parameters['configValue'];
 
             // set param
             $this->setConfigValue($configValue);

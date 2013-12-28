@@ -62,7 +62,7 @@ return array(
                 ),
                 'zftool-config-set' => array(
                     'options' => array(
-                        'route'    => 'config set <configName> [<configvalue>] [<path>] [--local|-l]:local',
+                        'route'    => 'config set <configName> <configValue> [<path>]',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Config',
                             'action'     => 'set',
@@ -134,7 +134,7 @@ return array(
                 ),
                 'zftool-create-module' => array(
                     'options' => array(
-                        'route'    => 'create module <moduleName> [<path>] [--ignore-conventions|-i]:ignoreConventions [--no-docblocks|-d]:noDocblocks',
+                        'route'    => 'create module <moduleName> [<path>] [--ignore|-i]:ignoreConventions [--apidocs|-a]:noApiDocs',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'module',
@@ -143,7 +143,7 @@ return array(
                 ),
                 'zftool-create-controller' => array(
                     'options' => array(
-                        'route'    => 'create controller <controllerName> <moduleName> [<path>] [--factory|-f]:factory [--ignore-conventions|-i]:ignoreConventions [--no-config|-n]:noConfig [--no-docblocks|-d]:noDocblocks',
+                        'route'    => 'create controller <controllerName> <moduleName> [<path>] [--factory|-f]:factory [--ignore|-i]:ignoreConventions [--config|-c]:noConfig [--apidocs|-a]:noApiDocs',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'controller',
@@ -152,7 +152,7 @@ return array(
                 ),
                 'zftool-create-action' => array(
                     'options' => array(
-                        'route'    => 'create action <actionName> <controllerName> <moduleName> [<path>] [--ignore-conventions|-i]:ignoreConventions [--no-docblocks|-d]:noDocblocks',
+                        'route'    => 'create action <actionName> <controllerName> <moduleName> [<path>] [--ignore|-i]:ignoreConventions [--apidocs|-a]:noApiDocs',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'method',
@@ -161,7 +161,7 @@ return array(
                 ),
                 'zftool-create-routing' => array(
                     'options' => array(
-                        'route'    => 'create routing <moduleName> [<path>] [--single-route|-s]:singleRoute',
+                        'route'    => 'create routing <moduleName> [<path>] [--single|-s]:singleRoute',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'routing',
@@ -170,7 +170,7 @@ return array(
                 ),
                 'zftool-create-controller-factory' => array(
                     'options' => array(
-                        'route'    => 'create controller-factory <controllerName> <moduleName> [<path>] [--no-config|-n]:noConfig [--no-docblocks|-d]:noDocblocks',
+                        'route'    => 'create controller-factory <controllerName> <moduleName> [<path>] [--config|-c]:noConfig [--apidocs|-a]:noApiDocs',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'controller-factory',

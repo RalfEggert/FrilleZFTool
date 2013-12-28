@@ -41,7 +41,8 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
 #### Display current Zend Framework 2 version
 
-    zf.php version | --version [<path>]
+    zf.php version [<path>]
+    zf.php --version [<path>]
 
     [<path>]            (Optional) path to a ZF2 application
 
@@ -68,77 +69,102 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
 ### Diagnostics
 
-    zf.php diag [options] [module name]
+    zf.php diag [<testGroupName>] [options]
 
-    [module name]       (Optional) name of module to test
-    -v --verbose        Display detailed information.
-    -b --break          Stop testing on first failure.
-    -q --quiet          Do not display any output unless an error occurs.
-    -d --debug          Display raw debug info from tests.
+    [testGroupName]     (Optional) name of module to test
+    --verbose | -v      Display detailed information.
+    --break   | -b      Stop testing on first failure.
+    --quiet   | -q      Do not display any output unless an error occurs.
+    --debug   | -d      Display raw debug info from tests.
 
-### Project creation
+### Creation
+
+#### Project creation
 
     zf.php create project <path>
 
-    <path>              The path of the project to be created
+    <path>              Path of the project to be created
 
-### Module creation
+#### Module creation
 
-    zf.php create module <moduleName> [<path>] [--ignore-conventions|-i] [--no-docblocks|-d]
+    zf.php create module <moduleName> [<path>] [options]
 
-    <moduleName>                The name of the module to be created
-    <path>                      The path to the root folder of the ZF2 application (optional)
-    --ignore-conventions | -i   Ignore coding conventions
-    --no-docblocks | -d         Prevent the doc block generation
+    <moduleName>        Name of  module to be created
+    [<path>]            (Optional) path to a ZF2 application
+    --ignore  | -i      Ignore coding conventions
+    --apidocs | -a      Prevent the api doc block generation
 
-### Controller creation:
-	zf.php create controller <controllerName> <moduleName> [<path>] [--with-factory|-f] [--ignore-conventions|-i] [--no-config|-n] [--no-docblocks|-d]
+#### Controller creation:
 
-	<controllerName>            The name of the controller to be created
-	<moduleName>                The module in which the controller should be created
-	<path>                      The root path of a ZF2 application where to create the controller
-    --factory | -f              Create a factory for the controller
-    --ignore-conventions | -i   Ignore coding conventions
-    --no-config | -n            Prevent that module configuration is updated
-    --no-docblocks | -d         Prevent the doc block generation
+	zf.php create controller <controllerName> <moduleName> [<path>] [options]
 
-### Action creation:
-	zf.php create action <actionName> <controllerName> <moduleName> [<path>] [--ignore-conventions|-i] [--no-docblocks|-d]
+	<controllerName>    Name of  controller to be created
+	<moduleName>        Module in which controller should be created
+	[<path>]            (Optional) path to a ZF2 application
+    --factory | -f      Create a factory for the controller
+    --ignore  | -i      Ignore coding conventions
+    --config  | -c      Prevent that module configuration is updated
+    --apidocs | -a      Prevent the api doc block generation
 
-	<actionName>                The name of the action to be created
-	<controllerName>            The name of the controller in which the action should be created
-	<moduleName>                The module containing the controller
-	<path>                      The root path of a ZF2 application where to create the action
-    --ignore-conventions | -i   Ignore coding conventions
-    --no-docblocks | -d         Prevent the doc block generation
+#### Controller factory creation:
 
-### Routing creation:
-	zf.php create routing <moduleName> [<path>] [--single-route|-s]
+	zf.php create controller-factory <controllerName> <moduleName> [<path>] [options]
 
-	<moduleName>                The module containing the controller
-	<path>                      The root path of a ZF2 application where to create the action
-    --single-route | -s         Create a single standard route for the module
+	<controllerName>    Name of  controller the factory has to be created
+	<moduleName>        Module in which the controller factory should be created
+	<path>              Root path of a ZF2 application where to create the controller factory
+    --config  | -c      Prevent that module configuration is updated
+    --apidocs | -a      Prevent the api doc block generation
 
-### Controller factory creation:
-	zf.php create controller-factory <controllerName> <moduleName> [<path>] [--no-config|-n] [--no-docblocks|-d]
+#### Action creation:
 
-	<controllerName>            The name of the controller the factory has to be created
-	<moduleName>                The module in which the controller factory should be created
-	<path>                      The root path of a ZF2 application where to create the controller factory
-    --no-config | -n            Prevent that module configuration is updated
-    --no-docblocks | -d         Prevent the doc block generation
+	zf.php create action <actionName> <controllerName> <moduleName> [<path>] [options]
+
+	<actionName>        Name of action to be created
+	<controllerName>    Name of controller in which action should be created
+	<moduleName>        Module containing the controller
+	[<path>]            (Optional) path to a ZF2 application
+    --ignore  | -i      Ignore coding conventions
+    --apidocs | -a      Prevent the api doc block generation
+
+#### Routing creation:
+
+	zf.php create routing <moduleName> [<path>] [options]
+
+	<moduleName>        Module containing the controller
+	[<path>]            (Optional) path to a ZF2 application
+    --single  | -s       Create single standard route for the module
 
 ### Application configuration
 
-    zf.php config list                  list all configuration option
-    zf.php config get <name>            display a single config value, i.e. "config get db.host"
-    zf.php config set <name> <value>    set a single config value (use only to change scalar values)
+#### List all configuration option
+
+    zf.php config list [<path>] [options]
+
+    [<path>]            (Optional) path to a ZF2 application
+    --local   | -l      Use local configuration file
+
+#### Display a single config value, i.e. "config get db.host"
+
+    zf.php config get <configName> [<path>] [options]
+
+    <configName>        Configuration key, i.e. db.host
+    [<path>]            (Optional) path to a ZF2 application
+    --local   | -l      Use local configuration file
+
+#### Set a single config value (to change scalar values in local configuration file)
+
+    zf.php config set <configName> <configValue> [<path>]
+
+    <configName>        Configuration key, i.e. db.host
+    <configValue>       Configuration value, i.e. localhost
+    [<path>]            (Optional) path to a ZF2 application
 
 ### Classmap generator
 
     zf.php classmap generate <directory> <classmap file>
 
-    <directory>         The directory to scan for PHP classes (use "." to use current directory)
+    <directory>          directory to scan for PHP classes (use "." to use current directory)
     <classmap file>     File name for generated class map file  or - for standard output. If not supplied, defaults to
                         autoload_classmap.php inside <directory>.
 
@@ -146,8 +172,8 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
     zf.php install zf <path> [<version>]
 
-    <path>              The directory where to install the ZF2 library
-    <version>           The version to install, if not specified uses the last available
+    <path>               directory where to install the ZF2 library
+    <version>            version to install, if not specified uses the last available
 
 ### Compile the PHAR file
 
