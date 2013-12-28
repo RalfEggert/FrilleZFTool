@@ -3,11 +3,11 @@
 namespace ZFTool;
 
 use Zend\Console\Adapter\AdapterInterface as ConsoleAdapterInterface;
+use Zend\Console\ColorInterface as Color;
 use Zend\EventManager\EventInterface;
-use Zend\Mvc\ModuleRouteListener;
-use Zend\ModuleManager\Feature\ConsoleUsageProviderInterface;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
+use Zend\ModuleManager\Feature\ConsoleUsageProviderInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
 class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterface, ConfigProviderInterface
@@ -42,7 +42,25 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
 
     public function getConsoleBanner(ConsoleAdapterInterface $console)
     {
-        return self::NAME;
+        $console->writeLine();
+        $console->writeLine(
+            str_pad('', $console->getWidth() - 1, ' ', STR_PAD_RIGHT),
+            Color::NORMAL,
+            Color::GREEN
+        );
+        $console->writeLine(
+            str_pad(' ' . self::NAME, $console->getWidth() - 1, ' ', STR_PAD_BOTH),
+            Color::NORMAL,
+            Color::GREEN
+        );
+        $console->writeLine(
+            str_pad('', $console->getWidth() - 1, ' ', STR_PAD_RIGHT),
+            Color::NORMAL,
+            Color::GREEN
+        );
+        $console->writeLine();
+
+        return 'Usage:';
     }
 
     public function getConsoleUsage(ConsoleAdapterInterface $console)
