@@ -153,12 +153,13 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
  * Create Factory class for given controller [DONE]
  * Add configuration for classmap generation [DONE]
  * Refactor controllers [DONE]
- * Create skeleton classes and configuration for  [NOT STARTED YET]
+ * Create skeleton classes and configuration for  [IN PROGRESS]
    * view helpers
    * controller plugins
    * forms
    * input filters
    * hydrators
+ * Re-organize help page [NOT STARTED YET]
  * Write tests for [NOT STARTED YET]
    * generator
    * configurator
@@ -172,5 +173,4 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
    * Ensuring that `getConfig()` returns serializable config
    * Ensuring that `Module.php` does not retain global state (no statics)
    * Ensuring that config returned by `get[A-Za-z]+Config()` produces arrays compatible with `Zend\ServiceManager\Config`
- * Re-organize help page [NOT STARTED YET]
  * to be continued
