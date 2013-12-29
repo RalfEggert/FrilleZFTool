@@ -4,17 +4,25 @@
 This is a **fork** of the official ZFTool module:
 https://github.com/zendframework/ZFTool
 
+Please refer to the [Todo](#todo) for any planned features.
 
 **ZFTool** is an utility module for maintaining modular Zend Framework 2 applications.
 It runs from the command line and can be installed as ZF2 module or as PHAR (see below).
 
 ## Features
- * Class-map generator
- * Listing of loaded modules
- * Create a new project (install the ZF2 skeleton application)
- * Create a new module
- * Create a new controller
- * Create a new action in a controller
+ * Install ZF2 library
+ * Listing of
+   * Modules in an application
+   * Controllers in a module
+   * Actions in a controller
+ * Creation of
+   * a new project (install the ZF2 skeleton application)
+   * a new module
+   * a new controller and add configuration
+   * a new action in a controller
+   * a new controller factory
+   * basic routing for a module
+ * Generate classmap and change Module.php to use it
  * [Application diagnostics](docs/DIAGNOSTICS.md)
 
 ## Requirements
@@ -192,7 +200,7 @@ way you can execute the *zftool.phar* script wherever you are, for instance exec
 Note: If the above fails due to permissions, run the mv line again with sudo.
 
 
-## Todo for the fork rework
+## Todo
  * Generate all code with `Zend\Code` [DONE]
  * Make doc block generation optional [DONE]
  * Add basic routing (optional) [DONE]
