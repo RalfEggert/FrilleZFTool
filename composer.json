@@ -6,12 +6,6 @@
         "tool"
     ],
     "license": "BSD-3-Clause",
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://packages.zendframework.com/"
-        }
-    ],
     "autoload": {
         "psr-0": {
             "ZFTool\\": "src/"
