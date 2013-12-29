@@ -22,7 +22,7 @@ It runs from the command line and can be installed as ZF2 module or as PHAR (see
    * a new action in a controller
    * a new view helper (optional add configuration and a factory)
    * basic routing for a module
- * Generate classmap and change Module.php to use it
+ * Generate classmap and change `Module.php` to use it
  * [Application diagnostics](docs/DIAGNOSTICS.md)
 
 ## Requirements
@@ -212,7 +212,7 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
  * Add configuration for classmap generation [DONE]
  * Refactor controllers [DONE]
  * Re-organize help page [DONE]
- * Create skeleton classes and configuration for  [IN PROGRESS]
+ * Create skeleton classes and configuration for [IN PROGRESS]
    * view helpers
    * controller plugins
    * forms
@@ -225,7 +225,9 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
    * option class
  * Create skeleton configuration for [NOT STARTED YET]
    * `Zend\Translate`
- * Turn module caching on/off, check writable caching dir [NOT STARTED YET]
+ * Application configuration [NOT STARTED YET]
+   * Turn module caching on/off, check writable caching dir
+   * Support other configuration file types beside php, e.g. ini, yaml, ....
  * Add module inspections  [NOT STARTED YET]
    * Ensuring that `Module.php` has a zero-argument constructor
    * Ensuring that `getConfig()` returns serializable config
