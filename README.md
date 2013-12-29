@@ -18,9 +18,9 @@ It runs from the command line and can be installed as ZF2 module or as PHAR (see
  * Creation of
    * a new project (install the ZF2 skeleton application)
    * a new module
-   * a new controller and add configuration
+   * a new controller (optional add configuration and a factory)
    * a new action in a controller
-   * a new controller factory
+   * a new view helper (optional add configuration and a factory)
    * basic routing for a module
  * Generate classmap and change Module.php to use it
  * [Application diagnostics](docs/DIAGNOSTICS.md)
@@ -142,6 +142,28 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 	<module_name>       Name of module to create the routing for
 	[<path>]            (Optional) path to a ZF2 application
     --single  | -s      Create single standard route for the module
+
+#### View helper creation:
+
+	zf.php create view-helper <helper_name> <module_name> [<path>] [options]
+
+	<helper_name>       Name of view helper to be created
+	<module_name>       Module in which view helper should be created
+	[<path>]            (Optional) path to a ZF2 application
+    --factory | -f      Create a factory for the view helper
+    --ignore  | -i      Ignore coding conventions
+    --config  | -c      Prevent that module configuration is updated
+    --apidocs | -a      Prevent the api doc block generation
+
+#### View helper factory creation:
+
+	zf.php create view-helper-factory <helper_name> <module_name> [<path>] [options]
+
+	<helper_name>       Name of view helper the factory has to be created
+	<module_name>       Module in which the view helper factory should be created
+	[<path>]            (Optional) path to a ZF2 application
+    --config  | -c      Prevent that module configuration is updated
+    --apidocs | -a      Prevent the api doc block generation
 
 ### Application configuration
 

@@ -450,6 +450,135 @@ class ModuleConfigurator
     }
 
     /**
+     * Add configuration for a new view helper
+     *
+     * @return bool|mixed
+     */
+    public function addViewHelperConfig()
+    {
+        // check for no config flag
+        if ($this->flagNoConfig) {
+            return false;
+        }
+
+        // get needed options to shorten code
+        $modulePath     = $this->requestOptions->getModulePath();
+        $viewHelperName = lcfirst($this->requestOptions->getViewHelperName());
+        $viewHelperKey  = $this->requestOptions->getViewHelperKey();
+
+        // Read module configuration
+        $moduleConfigOld = require $modulePath . '/config/module.config.php';
+        $moduleConfigNew = $moduleConfigOld;
+
+        // check for view_helpers configuration
+        if (!isset($moduleConfigNew['view_helpers'])) {
+            $moduleConfigNew['view_helpers'] = array();
+        }
+
+        // check for view_helpers invokables configuration
+        if (!isset($moduleConfigNew['view_helpers']['invokables'])) {
+            $moduleConfigNew['view_helpers']['invokables'] = array();
+        }
+
+        // check for view_helpers factories configuration
+        if (!isset($moduleConfigNew['view_helpers']['factories'])) {
+            $moduleConfigNew['view_helpers']['factories'] = array();
+        }
+
+        // check if invokable key is already there
+        if (!in_array(
+            $viewHelperName, $moduleConfigNew['view_helpers']['invokables']
+        )
+        ) {
+            $moduleConfigNew['view_helpers']['invokables'][$viewHelperName]
+                = $viewHelperKey;
+        }
+
+        // set config dir
+        $configDir = realpath($modulePath . '/config');
+
+        // reset constant compilation
+        $moduleConfigNew = $this->resetConfigDirCompilation(
+            $moduleConfigNew, $configDir
+        );
+
+        // check for module config updates
+        if ($moduleConfigNew !== $moduleConfigOld) {
+            return $moduleConfigNew;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Add configuration for a new view helper factory
+     *
+     * @return bool|mixed
+     */
+    public function addViewHelperFactoryConfig()
+    {
+        // check for no config flag
+        if ($this->flagNoConfig) {
+            return false;
+        }
+
+        // get needed options to shorten code
+        $modulePath     = $this->requestOptions->getModulePath();
+        $viewHelperName = lcfirst($this->requestOptions->getViewHelperName());
+        $viewHelperKey  = $this->requestOptions->getViewHelperKey();
+
+        // Read module configuration
+        $moduleConfigOld = require $modulePath . '/config/module.config.php';
+        $moduleConfigNew = $moduleConfigOld;
+
+        // check for view_helpers configuration
+        if (!isset($moduleConfigNew['view_helpers'])) {
+            $moduleConfigNew['view_helpers'] = array();
+        }
+
+        // check for view_helpers invokables configuration
+        if (!isset($moduleConfigNew['view_helpers']['invokables'])) {
+            $moduleConfigNew['view_helpers']['invokables'] = array();
+        }
+
+        // check for view_helpers invokables configuration
+        if (!isset($moduleConfigNew['view_helpers']['factories'])) {
+            $moduleConfigNew['view_helpers']['factories'] = array();
+        }
+
+        // check if factory key is already there
+        if (!in_array(
+            $viewHelperName, $moduleConfigNew['view_helpers']['factories']
+        )
+        ) {
+            $moduleConfigNew['view_helpers']['factories'][$viewHelperName]
+                = $viewHelperKey . 'Factory';
+        }
+
+        // check if invokable key is there
+        if (isset($moduleConfigNew['view_helpers']['invokables'])
+            && isset($moduleConfigNew['view_helpers']['invokables'][$viewHelperName])
+        ) {
+            unset($moduleConfigNew['view_helpers']['invokables'][$viewHelperName]);
+        }
+
+        // set config dir
+        $configDir = realpath($modulePath . '/config');
+
+        // reset constant compilation
+        $moduleConfigNew = $this->resetConfigDirCompilation(
+            $moduleConfigNew, $configDir
+        );
+
+        // check for module config updates
+        if ($moduleConfigNew !== $moduleConfigOld) {
+            return $moduleConfigNew;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @param array  $configData
      * @param string $configDir
      * @param int    $level

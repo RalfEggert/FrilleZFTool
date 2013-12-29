@@ -150,6 +150,15 @@ return array(
                         ),
                     ),
                 ),
+                'zftool-create-controller-factory' => array(
+                    'options' => array(
+                        'route'    => 'create controller-factory [<controller_name>] [<module_name>] [<path>] [--config|-c]:config [--apidocs|-a]:apidocs [--help|-h]:help',
+                        'defaults' => array(
+                            'controller' => 'ZFTool\Controller\Create',
+                            'action'     => 'controller-factory',
+                        ),
+                    ),
+                ),
                 'zftool-create-action' => array(
                     'options' => array(
                         'route'    => 'create action [<action_name>] [<controller_name>] [<module_name>] [<path>] [--ignore|-i]:ignore [--apidocs|-a]:apidocs [--help|-h]:help',
@@ -168,12 +177,21 @@ return array(
                         ),
                     ),
                 ),
-                'zftool-create-controller-factory' => array(
+                'zftool-create-view-helper' => array(
                     'options' => array(
-                        'route'    => 'create controller-factory [<controller_name>] [<module_name>] [<path>] [--config|-c]:config [--apidocs|-a]:apidocs [--help|-h]:help',
+                        'route'    => 'create view-helper [<helper_name>] [<module_name>] [<path>] [--factory|-f]:factory [--ignore|-i]:ignore [--config|-c]:config [--apidocs|-a]:apidocs [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
-                            'action'     => 'controller-factory',
+                            'action'     => 'view-helper',
+                        ),
+                    ),
+                ),
+                'zftool-create-view-helper-factory' => array(
+                    'options' => array(
+                        'route'    => 'create view-helper-factory [<helper_name>] [<module_name>] [<path>] [--config|-c]:config [--apidocs|-a]:apidocs [--help|-h]:help',
+                        'defaults' => array(
+                            'controller' => 'ZFTool\Controller\Create',
+                            'action'     => 'view-helper-factory',
                         ),
                     ),
                 ),

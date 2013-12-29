@@ -120,6 +120,12 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             'Create the routing for a module:',
             'create routing <module_name> [<path>] [options]' => '',
 
+            'Create a view helper in module:',
+            'create view-helper <helper_name> <module_name> [<path>] [options]' => '',
+
+            'Create a view helper factory in module:',
+            'create view-helper-factory <helper_name> <module_name> [<path>] [options]' => '',
+
             'Generate a Classmap for a directory / module:',
             'generate classmap <directory> [<destination>]' => '',
 

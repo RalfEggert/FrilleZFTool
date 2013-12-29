@@ -1171,4 +1171,405 @@ class CreateController extends AbstractActionController
 
     }
 
+    /**
+     * Create a view helper
+     *
+     * @return ConsoleModel
+     */
+    public function viewHelperAction()
+    {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->viewHelperHelp();
+        }
+
+        // output header
+        $this->consoleHeader('Creating new view helper');
+
+        // get needed options to shorten code
+        $path               = $this->requestOptions->getPath();
+        $flagWithFactory    = $this->requestOptions->getFlagWithFactory();
+        $moduleName         = $this->requestOptions->getModuleName();
+        $modulePath         = $this->requestOptions->getModulePath();
+        $viewHelperName     = $this->requestOptions->getViewHelperName();
+        $viewHelperPath     = $this->requestOptions->getViewHelperPath();
+        $viewHelperClass    = $this->requestOptions->getViewHelperClass();
+        $viewHelperFile     = $this->requestOptions->getViewHelperFile();
+
+        // check for module path and application config
+        if (!file_exists($path . '/module')
+            || !file_exists($path . '/config/application.config.php')
+        ) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The path '),
+                    array(Color::RED    => $path),
+                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if helper name provided
+        if (!$viewHelperName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the view helper name as parameter.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
+                )
+            );
+        }
+
+        // check if controller exists already in module
+        if (file_exists($viewHelperPath . $viewHelperFile)) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The view helper '),
+                    array(Color::RED    => $viewHelperName),
+                    array(Color::NORMAL => ' already exists in module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => '.'),
+                )
+            );
+        }
+
+        // write start message
+        $this->console->write('       => Creating view helper ');
+        $this->console->write ($viewHelperName, Color::GREEN);
+        $this->console->write(' in module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // create controller class
+        $viewHelperFlag = $this->moduleGenerator->createViewHelper();
+
+        // write start message
+        $this->console->write('       => Adding view helper configuration for ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // add controller configuration to module
+        $moduleConfig = $this->moduleConfigurator->addViewHelperConfig();
+
+        // check for factory flag
+        if ($flagWithFactory) {
+            // create controller factory class
+            $factoryFlag = $this->moduleGenerator->createViewHelperFactory();
+
+            // write start message
+            $this->console->write('       => Creating factory for view helper ');
+            $this->console->write ($viewHelperName, Color::GREEN);
+            $this->console->write(' in module ');
+            $this->console->writeLine($moduleName, Color::GREEN);
+
+            // add controller factory configuration to module
+            $moduleConfig = $this->moduleConfigurator->addViewHelperFactoryConfig();
+        } else {
+            $factoryFlag = false;
+        }
+
+        // check for module config updates
+        if ($moduleConfig) {
+            // update module configuration
+            $this->moduleGenerator->updateConfiguration(
+                $moduleConfig, $modulePath . '/config/module.config.php'
+            );
+
+            // write start message
+            $this->console->write('       => Updating configuration for module ');
+            $this->console->writeLine($moduleName, Color::GREEN);
+        }
+
+        $this->console->writeLine();
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+
+        // write message
+        if ($factoryFlag) {
+            $this->console->write('The view helper ');
+            $this->console->write($viewHelperName, Color::GREEN);
+            $this->console->write(' has been created with a factory in module ');
+            $this->console->writeLine($moduleName, Color::GREEN);
+        } else {
+            $this->console->write('The view helper ');
+            $this->console->write($viewHelperName, Color::GREEN);
+            $this->console->write(' has been created in module ');
+            $this->console->writeLine($moduleName, Color::GREEN);
+        }
+
+        $this->console->writeLine();
+        $this->console->writeLine('       => In order to use the view helper add the following code to any view script.');
+        $this->console->writeLine('          <?php echo $this->' . lcfirst($viewHelperName) . '(); ?>', Color::CYAN);
+
+        // output footer
+        $this->consoleFooter('view helper was successfully created');
+
+    }
+
+    /**
+     * Create a view helper help
+     */
+    public function viewHelperHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a new view helper within an module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create view-helper <helper_name> <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <helper_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of view helper to be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <module_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Module in which view helper should be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]           ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --factory|-f       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Create a factory for the view helper.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --ignore|-i        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Ignore coding conventions.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --config|-c        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent that module configuration is updated.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --apidocs|-a       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent the api doc block generation.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
+     * Create a view helper factory
+     *
+     * @return ConsoleModel
+     */
+    public function viewHelperFactoryAction()
+    {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->viewHelperFactoryHelp();
+        }
+
+        // output header
+        $this->consoleHeader('Creating new view helper factory');
+
+        // get needed options to shorten code
+        $path               = $this->requestOptions->getPath();
+        $moduleName         = $this->requestOptions->getModuleName();
+        $modulePath         = $this->requestOptions->getModulePath();
+        $viewHelperName     = $this->requestOptions->getViewHelperName();
+        $viewHelperPath     = $this->requestOptions->getViewHelperPath();
+        $viewHelperClass    = $this->requestOptions->getViewHelperClass();
+        $viewHelperFile     = $this->requestOptions->getViewHelperFile();
+
+        // check for module path and application config
+        if (!file_exists($path . '/module')
+            || !file_exists($path . '/config/application.config.php')
+        ) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The path '),
+                    array(Color::RED    => $path),
+                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if controller name provided
+        if (!$viewHelperName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the view helper name as parameter.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
+                )
+            );
+        }
+
+        // check if controller exists already in module
+        if (!file_exists($viewHelperPath . $viewHelperFile)) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The view helper '),
+                    array(Color::RED    => $viewHelperName),
+                    array(Color::NORMAL => ' does not exist in module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => '.'),
+                )
+            );
+        }
+
+        // write start message
+        $this->console->write('       => Creating view helper factory for ');
+        $this->console->write ($viewHelperName, Color::GREEN);
+        $this->console->write(' in module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // create controller factory class
+        try {
+            $factoryFlag = $this->moduleGenerator->createViewHelperFactory();
+        } catch (GeneratorException $e) {
+            $this->console->writeLine();
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The factory for the view helper '),
+                    array(Color::RED    => $viewHelperName),
+                    array(Color::NORMAL => ' of module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => ' exists already.'),
+                )
+            );
+        }
+
+        // write start message
+        $this->console->write('       => Updating view helper configuration for ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // add controller factory configuration to module
+        $moduleConfig = $this->moduleConfigurator->addViewHelperFactoryConfig();
+
+        // check for module config updates
+        if ($moduleConfig) {
+            // update module configuration
+            $this->moduleGenerator->updateConfiguration(
+                $moduleConfig, $modulePath . '/config/module.config.php'
+            );
+        }
+
+        $this->console->writeLine();
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+
+        // write message
+        $this->console->write('The factory for view helper ');
+        $this->console->write($viewHelperName, Color::GREEN);
+        $this->console->write(' has been created in module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // output footer
+        $this->consoleFooter('view helper factory was successfully created');
+
+    }
+
+    /**
+     * Create a view helper factory help
+     */
+    public function viewHelperFactoryHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a factory for view helper within an module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create view-helper-factory <helper_name> <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <helper_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of view helper the factory has to be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <module_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Module in which the view helper factory should be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]           ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --config|-c        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent that module configuration is updated.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --apidocs|-a       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent the api doc block generation.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+    }
+
 }

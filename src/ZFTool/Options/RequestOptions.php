@@ -211,6 +211,36 @@ class RequestOptions extends AbstractOptions
      * @var string
      */
     protected $version;
+    /**
+     * Class name of view helper
+     *
+     * @var string
+     */
+    protected $viewHelperClass;
+    /**
+     * File name of view helper
+     *
+     * @var string
+     */
+    protected $viewHelperFile;
+    /**
+     * Configuration key of view helper
+     *
+     * @var string
+     */
+    protected $viewHelperKey;
+    /**
+     * Name of view helper
+     *
+     * @var string
+     */
+    protected $viewHelperName;
+    /**
+     * Path to view helper
+     *
+     * @var string
+     */
+    protected $viewHelperPath;
 
     /**
      * @return string
@@ -741,6 +771,86 @@ class RequestOptions extends AbstractOptions
     }
 
     /**
+     * @return string
+     */
+    public function getViewHelperClass()
+    {
+        return $this->viewHelperClass;
+    }
+
+    /**
+     * @param string $viewHelperClass
+     */
+    public function setViewHelperClass($viewHelperClass)
+    {
+        $this->viewHelperClass = $viewHelperClass;
+    }
+
+    /**
+     * @return string
+     */
+    public function getViewHelperFile()
+    {
+        return $this->viewHelperFile;
+    }
+
+    /**
+     * @param string $viewHelperFile
+     */
+    public function setViewHelperFile($viewHelperFile)
+    {
+        $this->viewHelperFile = $viewHelperFile;
+    }
+
+    /**
+     * @return string
+     */
+    public function getViewHelperKey()
+    {
+        return $this->viewHelperKey;
+    }
+
+    /**
+     * @param string $viewHelperKey
+     */
+    public function setViewHelperKey($viewHelperKey)
+    {
+        $this->viewHelperKey = $viewHelperKey;
+    }
+
+    /**
+     * @return string
+     */
+    public function getViewHelperName()
+    {
+        return $this->viewHelperName;
+    }
+
+    /**
+     * @param string $viewHelperName
+     */
+    public function setViewHelperName($viewHelperName)
+    {
+        $this->viewHelperName = $viewHelperName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getViewHelperPath()
+    {
+        return $this->viewHelperPath;
+    }
+
+    /**
+     * @param string $viewHelperPath
+     */
+    public function setViewHelperPath($viewHelperPath)
+    {
+        $this->viewHelperPath = $viewHelperPath;
+    }
+
+    /**
      * Set options from request parameters
      *
      * @param  Parameters $parameters
@@ -788,7 +898,7 @@ class RequestOptions extends AbstractOptions
             $this->setFlagQuiet(false);
         }
 
-        // check for moduleName param
+        // check for module_name param
         if ($parameters['module_name']) {
             $moduleName = $parameters['module_name'];
 
@@ -829,12 +939,12 @@ class RequestOptions extends AbstractOptions
             $this->setModuleViewDir($moduleViewDir);
             $this->setModuleRoute($moduleRoute);
         } else {
-            $moduleName = '';
-            $modulePath = '';
+            $moduleName    = '';
+            $modulePath    = '';
             $moduleViewDir = '';
         }
 
-        // check for controllerName param
+        // check for controller_name param
         if ($parameters['controller_name']) {
             $controllerName = $parameters['controller_name'];
 
@@ -908,7 +1018,7 @@ class RequestOptions extends AbstractOptions
             $controllerViewPath = '';
         }
 
-        // check for actionName param
+        // check for action_name param
         if ($parameters['action_name']) {
             $actionName = $parameters['action_name'];
 
@@ -968,7 +1078,7 @@ class RequestOptions extends AbstractOptions
         // set param
         $this->setDestination($destination);
 
-        // check for configName param
+        // check for config_name param
         if ($parameters['config_name']) {
             $configName = $parameters['config_name'];
 
@@ -976,7 +1086,7 @@ class RequestOptions extends AbstractOptions
             $this->setConfigName($configName);
         }
 
-        // check for configValue param
+        // check for config_value param
         if ($parameters['config_value']) {
             $configValue = $parameters['config_value'];
 
@@ -998,6 +1108,46 @@ class RequestOptions extends AbstractOptions
 
             // set param
             $this->setTestGroupName($testGroupName);
+        }
+
+        // check for helper_name param
+        if ($parameters['helper_name']) {
+            $viewHelperName = $parameters['helper_name'];
+
+            if (!$this->getFlagIgnoreConventions()) {
+                $viewHelperName = StaticFilter::execute(
+                    $viewHelperName, 'Word\UnderscoreToCamelCase'
+                );
+                $viewHelperName = StaticFilter::execute(
+                    $viewHelperName, 'Word\DashToCamelCase'
+                );
+            } else {
+                $viewHelperName = StaticFilter::execute(
+                    $viewHelperName, 'Word\DashToUnderscore'
+                );
+            }
+
+            // set controller path
+            $viewHelperPath = $modulePath . '/src/'
+                . $moduleName . '/View/Helper/';
+
+            // set controller class
+            $viewHelperClass = $viewHelperName;
+
+            // set controller identifier
+            $viewHelperKey = $moduleName . '\View\Helper\\' . $viewHelperName;
+
+            // set controller file
+            $viewHelperFile = $viewHelperClass . '.php';
+
+            // set params
+            $this->setViewHelperName($viewHelperName);
+            $this->setViewHelperPath($viewHelperPath);
+            $this->setViewHelperClass($viewHelperClass);
+            $this->setViewHelperKey($viewHelperKey);
+            $this->setViewHelperFile($viewHelperFile);
+        } else {
+            $controllerViewPath = '';
         }
 
         return $this;
