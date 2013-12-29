@@ -44,7 +44,7 @@ return array(
             'routes' => array(
                 'zftool-version' => array(
                     'options' => array(
-                        'route'    => 'version [<path>]',
+                        'route'    => 'version [<path>] [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Info',
                             'action'     => 'version',
@@ -53,7 +53,7 @@ return array(
                 ),
                 'zftool-version2' => array(
                     'options' => array(
-                        'route'    => '--version [<path>]',
+                        'route'    => '--version [<path>] [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Info',
                             'action'     => 'version',
@@ -62,7 +62,7 @@ return array(
                 ),
                 'zftool-config-set' => array(
                     'options' => array(
-                        'route'    => 'config set <configName> <configValue> [<path>]',
+                        'route'    => 'config set [<config_name>] [<config_value>] [<path>] [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Config',
                             'action'     => 'set',
@@ -71,7 +71,7 @@ return array(
                 ),
                 'zftool-config-get' => array(
                     'options' => array(
-                        'route'    => 'config get <configName> [<path>] [--local|-l]:local',
+                        'route'    => 'config get [<config_name>] [<path>] [--local|-l]:local [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Config',
                             'action'     => 'get',
@@ -80,7 +80,7 @@ return array(
                 ),
                 'zftool-config-list' => array(
                     'options' => array(
-                        'route'    => 'config list [<path>] [--local|-l]:local',
+                        'route'    => 'config list [<path>] [--local|-l]:local [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Config',
                             'action'     => 'list',
@@ -89,7 +89,7 @@ return array(
                 ),
                 'zftool-generate-classmap' => array(
                     'options' => array(
-                        'route'    => 'generate classmap <directory> [<destination>]',
+                        'route'    => 'generate classmap [<directory>] [<destination>] [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Generate',
                             'action'     => 'Classmap',
@@ -98,7 +98,7 @@ return array(
                 ),
                 'zftool-modules-list' => array(
                     'options' => array(
-                        'route'    => 'modules [<path>]',
+                        'route'    => 'modules [<path>] [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Info',
                             'action'     => 'modules',
@@ -107,7 +107,7 @@ return array(
                 ),
                 'zftool-controllers-list' => array(
                     'options' => array(
-                        'route'    => 'controllers <moduleName> [<path>]',
+                        'route'    => 'controllers [<module_name>] [<path>] [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Info',
                             'action'     => 'controllers',
@@ -116,7 +116,7 @@ return array(
                 ),
                 'zftool-actions-list' => array(
                     'options' => array(
-                        'route'    => 'actions <controllerName> <moduleName> [<path>]',
+                        'route'    => 'actions [<controller_name>] [<module_name>] [<path>] [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Info',
                             'action'     => 'actions',
@@ -125,7 +125,7 @@ return array(
                 ),
                 'zftool-create-project' => array(
                     'options' => array(
-                        'route'    => 'create project <path>',
+                        'route'    => 'create project [<path>] [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'project',
@@ -134,7 +134,7 @@ return array(
                 ),
                 'zftool-create-module' => array(
                     'options' => array(
-                        'route'    => 'create module <moduleName> [<path>] [--ignore|-i]:ignoreConventions [--apidocs|-a]:noApiDocs',
+                        'route'    => 'create module [<module_name>] [<path>] [--ignore|-i]:ignore [--apidocs|-a]:apidocs [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'module',
@@ -143,7 +143,7 @@ return array(
                 ),
                 'zftool-create-controller' => array(
                     'options' => array(
-                        'route'    => 'create controller <controllerName> <moduleName> [<path>] [--factory|-f]:factory [--ignore|-i]:ignoreConventions [--config|-c]:noConfig [--apidocs|-a]:noApiDocs',
+                        'route'    => 'create controller [<controller_name>] [<module_name>] [<path>] [--factory|-f]:factory [--ignore|-i]:ignore [--config|-c]:config [--apidocs|-a]:apidocs [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'controller',
@@ -152,7 +152,7 @@ return array(
                 ),
                 'zftool-create-action' => array(
                     'options' => array(
-                        'route'    => 'create action <actionName> <controllerName> <moduleName> [<path>] [--ignore|-i]:ignoreConventions [--apidocs|-a]:noApiDocs',
+                        'route'    => 'create action [<action_name>] [<controller_name>] [<module_name>] [<path>] [--ignore|-i]:ignore [--apidocs|-a]:apidocs [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'method',
@@ -161,7 +161,7 @@ return array(
                 ),
                 'zftool-create-routing' => array(
                     'options' => array(
-                        'route'    => 'create routing <moduleName> [<path>] [--single|-s]:singleRoute',
+                        'route'    => 'create routing [<module_name>] [<path>] [--single|-s]:single [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'routing',
@@ -170,7 +170,7 @@ return array(
                 ),
                 'zftool-create-controller-factory' => array(
                     'options' => array(
-                        'route'    => 'create controller-factory <controllerName> <moduleName> [<path>] [--config|-c]:noConfig [--apidocs|-a]:noApiDocs',
+                        'route'    => 'create controller-factory [<controller_name>] [<module_name>] [<path>] [--config|-c]:config [--apidocs|-a]:apidocs [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Create',
                             'action'     => 'controller-factory',
@@ -179,7 +179,7 @@ return array(
                 ),
                 'zftool-install-zf' => array(
                     'options' => array(
-                        'route'    => 'install zf <path> [<version>]',
+                        'route'    => 'install [<path>] [<version>] [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Install',
                             'action'     => 'zf',
@@ -188,7 +188,7 @@ return array(
                 ),
                 'zftool-diagnostics' => array(
                     'options' => array(
-                        'route'    => '(diagnostics|diag) [-v|--verbose]:verbose [-d|--debug]:debug [-q|--quiet]:quiet [-b|--break]:break [<testGroupName>]',
+                        'route'    => '(diagnostics|diag) [-v|--verbose]:verbose [-d|--debug]:debug [-q|--quiet]:quiet [-b|--break]:break [<testGroupName>] [--help|-h]:help',
                         'defaults' => array(
                             'controller' => 'ZFTool\Controller\Diagnostics',
                             'action'     => 'run',

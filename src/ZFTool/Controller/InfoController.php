@@ -45,6 +45,11 @@ class InfoController extends AbstractActionController
      */
     public function versionAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->versionHelp();
+        }
+
         // output header
         $this->consoleHeader('Fetching requested information');
 
@@ -76,15 +81,68 @@ class InfoController extends AbstractActionController
     }
 
     /**
+     * Show ZF2 version help
+     */
+    public function versionHelp()
+    {
+        // output header
+        $this->consoleHeader('Display current Zend Framework 2 version', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php version [<path>]',
+            Color::GREEN
+        );
+        $this->console->writeLine(
+            '       zf.php --version [<path>]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       [<path>] ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
      * Show installed modules
      */
     public function modulesAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->modulesHelp();
+        }
+
         // output header
         $this->consoleHeader('Fetching requested information');
 
         // get needed options to shorten code
-        $path = realpath($this->requestOptions->getPath());
+        $path = $this->requestOptions->getPath();
+
+        // check for module path and application config
+        if (!file_exists($path . '/module')
+            || !file_exists($path . '/config/application.config.php')
+        ) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The path '),
+                    array(Color::RED    => $path),
+                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
 
         // get modules
         $modules = $this->getModules($path);
@@ -119,10 +177,46 @@ class InfoController extends AbstractActionController
     }
 
     /**
+     * Show ZF2 modules help
+     */
+    public function modulesHelp()
+    {
+        // output header
+        $this->consoleHeader('Show all modules within a ZF2 application', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php modules [<path>]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       [<path>] ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
      * Show controllers for a module
      */
     public function controllersAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->controllersHelp();
+        }
+
         // output header
         $this->consoleHeader('Fetching requested information');
 
@@ -138,8 +232,17 @@ class InfoController extends AbstractActionController
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The path '),
-                    array(Color::RED    => realpath($path)),
+                    array(Color::RED    => $path),
                     array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
                 )
             );
         }
@@ -193,10 +296,54 @@ class InfoController extends AbstractActionController
     }
 
     /**
+     * Show ZF2 controllers help
+     */
+    public function controllersHelp()
+    {
+        // output header
+        $this->consoleHeader('Show all controllers for a module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php controllers <module_name> [<path>]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <module_name> ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of module.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]     ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
      * Show actions for a controller in a module
      */
     public function actionsAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->actionsHelp();
+        }
+
         // output header
         $this->consoleHeader('Fetching requested information');
 
@@ -216,8 +363,26 @@ class InfoController extends AbstractActionController
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The path '),
-                    array(Color::RED    => realpath($path)),
+                    array(Color::RED    => $path),
                     array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if controller name provided
+        if (!$controllerName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the controller name as parameter.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
                 )
             );
         }
@@ -283,6 +448,53 @@ class InfoController extends AbstractActionController
 
         // output footer
         $this->consoleFooter('requested info was successfully displayed');
+
+    }
+
+    /**
+     * Show ZF2 actions help
+     */
+    public function actionsHelp()
+    {
+        // output header
+        $this->consoleHeader('Show all actions for a controller in a module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php actions <module_name> <controller_name> [<path>]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <module_name>     ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of module.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <controller_name> ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of controller.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]         ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
 
     }
 
@@ -400,8 +612,8 @@ class InfoController extends AbstractActionController
             return 'vendor/zendframework/zendframework/library';
         } elseif (is_dir('vendor/zendframework/zend-version')) {
             return 'vendor/zendframework/zend-version';
-        } elseif (is_dir(realpath($this->requestOptions->getPath()) . '/vendor/zendframework/zendframework/library')) {
-            return realpath($this->requestOptions->getPath()) . '/vendor/zendframework/zendframework/library';
+        } elseif (is_dir($this->requestOptions->getPath() . '/vendor/zendframework/zendframework/library')) {
+            return $this->requestOptions->getPath() . '/vendor/zendframework/zendframework/library';
         }
         return false;
     }

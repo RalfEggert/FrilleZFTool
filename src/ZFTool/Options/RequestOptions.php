@@ -110,6 +110,12 @@ class RequestOptions extends AbstractOptions
      */
     protected $flagDebug;
     /**
+     * Flag for help mode
+     *
+     * @var boolean
+     */
+    protected $flagHelp;
+    /**
      * Flag to ignore coding standard conventions
      *
      * @var boolean
@@ -122,17 +128,17 @@ class RequestOptions extends AbstractOptions
      */
     protected $flagLocal;
     /**
-     * Flag to create no configuration
-     *
-     * @var boolean
-     */
-    protected $flagNoConfig;
-    /**
      * Flag to create no doc blocks
      *
      * @var boolean
      */
     protected $flagNoApiDocs;
+    /**
+     * Flag to create no configuration
+     *
+     * @var boolean
+     */
+    protected $flagNoConfig;
     /**
      * Flag for quiet mode
      *
@@ -465,6 +471,22 @@ class RequestOptions extends AbstractOptions
     /**
      * @return boolean
      */
+    public function getFlagHelp()
+    {
+        return $this->flagHelp;
+    }
+
+    /**
+     * @param boolean $flagHelp
+     */
+    public function setFlagHelp($flagHelp)
+    {
+        $this->flagHelp = $flagHelp;
+    }
+
+    /**
+     * @return boolean
+     */
     public function getFlagIgnoreConventions()
     {
         return $this->flagIgnoreConventions;
@@ -497,22 +519,6 @@ class RequestOptions extends AbstractOptions
     /**
      * @return boolean
      */
-    public function getFlagNoConfig()
-    {
-        return $this->flagNoConfig;
-    }
-
-    /**
-     * @param boolean $flagNoConfig
-     */
-    public function setFlagNoConfig($flagNoConfig)
-    {
-        $this->flagNoConfig = (boolean)$flagNoConfig;
-    }
-
-    /**
-     * @return boolean
-     */
     public function getFlagNoApiDocs()
     {
         return $this->flagNoApiDocs;
@@ -524,6 +530,22 @@ class RequestOptions extends AbstractOptions
     public function setFlagNoApiDocs($flagNoApiDocs)
     {
         $this->flagNoApiDocs = (boolean)$flagNoApiDocs;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getFlagNoConfig()
+    {
+        return $this->flagNoConfig;
+    }
+
+    /**
+     * @param boolean $flagNoConfig
+     */
+    public function setFlagNoConfig($flagNoConfig)
+    {
+        $this->flagNoConfig = (boolean)$flagNoConfig;
     }
 
     /**
@@ -748,15 +770,16 @@ class RequestOptions extends AbstractOptions
 
         // set params
         $this->setFlagWithFactory($parameters['factory']);
-        $this->setFlagIgnoreConventions($parameters['ignoreConventions']);
-        $this->setFlagNoConfig($parameters['noConfig']);
-        $this->setFlagNoApiDocs($parameters['noApiDocs']);
-        $this->setFlagSingleRoute($parameters['singleRoute']);
+        $this->setFlagIgnoreConventions($parameters['ignore']);
+        $this->setFlagNoConfig($parameters['config']);
+        $this->setFlagNoApiDocs($parameters['apidocs']);
+        $this->setFlagSingleRoute($parameters['single']);
         $this->setFlagLocal($parameters['local']);
         $this->setFlagDebug($parameters['debug']);
         $this->setFlagVerbose($parameters['verbose']);
         $this->setFlagQuiet($parameters['quiet']);
         $this->setFlagBreak($parameters['break']);
+        $this->setFlagHelp($parameters['help']);
 
         // correct quiet mode of debug or verbose is set
         if (($this->getFlagDebug() || $this->getFlagVerbose())
@@ -766,8 +789,8 @@ class RequestOptions extends AbstractOptions
         }
 
         // check for moduleName param
-        if ($parameters['moduleName']) {
-            $moduleName = $parameters['moduleName'];
+        if ($parameters['module_name']) {
+            $moduleName = $parameters['module_name'];
 
             if (!$this->getFlagIgnoreConventions()) {
                 $moduleName = StaticFilter::execute(
@@ -805,11 +828,15 @@ class RequestOptions extends AbstractOptions
             $this->setModulePath($modulePath);
             $this->setModuleViewDir($moduleViewDir);
             $this->setModuleRoute($moduleRoute);
+        } else {
+            $moduleName = '';
+            $modulePath = '';
+            $moduleViewDir = '';
         }
 
         // check for controllerName param
-        if ($parameters['controllerName']) {
-            $controllerName = $parameters['controllerName'];
+        if ($parameters['controller_name']) {
+            $controllerName = $parameters['controller_name'];
 
             if (!$this->getFlagIgnoreConventions()) {
                 $controllerName = StaticFilter::execute(
@@ -877,11 +904,13 @@ class RequestOptions extends AbstractOptions
             $this->setActionMethod($actionMethod);
             $this->setActionViewFile($actionViewFile);
             $this->setActionViewPath($actionViewPath);
+        } else {
+            $controllerViewPath = '';
         }
 
         // check for actionName param
-        if ($parameters['actionName']) {
-            $actionName = $parameters['actionName'];
+        if ($parameters['action_name']) {
+            $actionName = $parameters['action_name'];
 
             if (!$this->getFlagIgnoreConventions()) {
                 $actionName = StaticFilter::execute(
@@ -940,16 +969,16 @@ class RequestOptions extends AbstractOptions
         $this->setDestination($destination);
 
         // check for configName param
-        if ($parameters['configName']) {
-            $configName = $parameters['configName'];
+        if ($parameters['config_name']) {
+            $configName = $parameters['config_name'];
 
             // set param
             $this->setConfigName($configName);
         }
 
         // check for configValue param
-        if ($parameters['configValue']) {
-            $configValue = $parameters['configValue'];
+        if ($parameters['config_value']) {
+            $configValue = $parameters['config_value'];
 
             // set param
             $this->setConfigValue($configValue);
@@ -964,8 +993,8 @@ class RequestOptions extends AbstractOptions
         }
 
         // check for testGroupName param
-        if ($parameters['testGroupName']) {
-            $testGroupName = $parameters['testGroupName'];
+        if ($parameters['test_group_name']) {
+            $testGroupName = $parameters['test_group_name'];
 
             // set param
             $this->setTestGroupName($testGroupName);

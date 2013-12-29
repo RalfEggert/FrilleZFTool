@@ -41,7 +41,7 @@ class ConsoleHeader extends AbstractPlugin
      * @param  string $msg
      * @return ConsoleModel
      */
-    public function __invoke($msg)
+    public function __invoke($msg, $badge = '  Go  ')
     {
         $this->console->writeLine();
         $this->console->writeLine(
@@ -61,7 +61,7 @@ class ConsoleHeader extends AbstractPlugin
         );
         $this->console->writeLine();
 
-        $this->console->write('  Go  ', Color::NORMAL, Color::YELLOW);
+        $this->console->write($badge, Color::NORMAL, Color::YELLOW);
         $this->console->write(' ');
         $this->console->writeLine($msg . ' ...');
         $this->console->writeLine();

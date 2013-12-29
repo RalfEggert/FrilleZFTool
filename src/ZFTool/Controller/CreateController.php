@@ -64,6 +64,11 @@ class CreateController extends AbstractActionController
      */
     public function projectAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->projectHelp();
+        }
+
         // output header
         $this->consoleHeader('Creating new Zend Framework 2 project');
 
@@ -89,12 +94,21 @@ class CreateController extends AbstractActionController
         $path   = $this->requestOptions->getPath();
         $tmpDir = $this->requestOptions->getTmpDir();
 
+        // check if path provided
+        if ($path == '.') {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the path to create the project in.'),
+                )
+            );
+        }
+
         // check if path exists
         if (file_exists($path)) {
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The directory '),
-                    array(Color::RED    => realpath($path)),
+                    array(Color::RED    => $path),
                     array(Color::NORMAL => ' already exists. '),
                     array(Color::NORMAL => 'You cannot create a ZF2 project here.'),
                 )
@@ -155,7 +169,7 @@ class CreateController extends AbstractActionController
                 return $this->sendError(
                     array(
                         array(Color::NORMAL => 'Error during the copy of the files in '),
-                        array(Color::RED    => realpath($path)),
+                        array(Color::RED    => $path),
                         array(Color::NORMAL => '.'),
                     )
                 );
@@ -207,12 +221,48 @@ class CreateController extends AbstractActionController
     }
 
     /**
+     * Create a project help
+     */
+    public function projectHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a new project with the SkeletonApplication', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create project <path>',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <path> ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Path of the project to be created.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
      * Create a controller
      *
      * @return ConsoleModel
      */
     public function controllerAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->controllerHelp();
+        }
+
         // output header
         $this->consoleHeader('Creating new controller');
 
@@ -235,8 +285,26 @@ class CreateController extends AbstractActionController
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The path '),
-                    array(Color::RED    => realpath($path)),
+                    array(Color::RED    => $path),
                     array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if controller name provided
+        if (!$controllerName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the controller name as parameter.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
                 )
             );
         }
@@ -331,12 +399,96 @@ class CreateController extends AbstractActionController
     }
 
     /**
+     * Create a controller help
+     */
+    public function controllerHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a new controller within an module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create controller <controller_name> <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <controller_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of controller to be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <module_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Module in which controller should be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]           ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --factory|-f       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Create a factory for the controller.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --ignore|-i        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Ignore coding conventions.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --config|-c        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent that module configuration is updated.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --apidocs|-a       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent the api doc block generation.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
      * Create a controller factory
      *
      * @return ConsoleModel
      */
     public function controllerFactoryAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->controllerFactoryHelp();
+        }
+
         // output header
         $this->consoleHeader('Creating new controller factory');
 
@@ -356,8 +508,26 @@ class CreateController extends AbstractActionController
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The path '),
-                    array(Color::RED    => realpath($path)),
+                    array(Color::RED    => $path),
                     array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if controller name provided
+        if (!$controllerName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the controller name as parameter.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
                 )
             );
         }
@@ -427,12 +597,79 @@ class CreateController extends AbstractActionController
     }
 
     /**
+     * Create a controller factory help
+     */
+    public function controllerFactoryHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a factory for controller within an module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create controller-factory <controller_name> <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <controller_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of controller the factory has to be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <module_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Module in which the controller factory should be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]           ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --config|-c        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent that module configuration is updated.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --apidocs|-a       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent the api doc block generation.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+    }
+
+    /**
      * Create an action method
      *
      * @return ConsoleModel
      */
     public function methodAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->methodHelp();
+        }
+
         // output header
         $this->consoleHeader('Creating new action');
 
@@ -454,8 +691,35 @@ class CreateController extends AbstractActionController
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The path '),
-                    array(Color::RED    => realpath($path)),
+                    array(Color::RED    => $path),
                     array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if action name provided
+        if (!$actionName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the action name as parameter.'),
+                )
+            );
+        }
+
+        // check if controller name provided
+        if (!$controllerName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the controller name as parameter.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
                 )
             );
         }
@@ -527,12 +791,88 @@ class CreateController extends AbstractActionController
     }
 
     /**
+     * Create an action method help
+     */
+    public function methodHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a new action for a controller within an module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create action <action_name> <controller_name> <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <action_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of action to be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <controller_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of controller in which action should be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <module_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Module containing the controller.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]           ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --ignore|-i        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Ignore coding conventions.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --apidocs|-a       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent the api doc block generation.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
      * Create a module
      *
      * @return ConsoleModel
      */
     public function moduleAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->moduleHelp();
+        }
+
         // output header
         $this->consoleHeader('Creating new module');
 
@@ -549,8 +889,17 @@ class CreateController extends AbstractActionController
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The path '),
-                    array(Color::RED    => realpath($path)),
+                    array(Color::RED    => $path),
                     array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
                 )
             );
         }
@@ -618,12 +967,72 @@ class CreateController extends AbstractActionController
     }
 
     /**
+     * Create a module help
+     */
+    public function moduleHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a new module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create module <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <module_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of module to be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --ignore|-i    ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Ignore coding conventions.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --apidocs|-a   ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent the api doc block generation.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
      * Create the routing for a module
      *
      * @return ConsoleModel
      */
     public function routingAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->routingHelp();
+        }
+
         // output header
         $this->consoleHeader('Creating the routing for a module');
 
@@ -639,8 +1048,17 @@ class CreateController extends AbstractActionController
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The path '),
-                    array(Color::RED    => realpath($path)),
+                    array(Color::RED    => $path),
                     array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
                 )
             );
         }
@@ -705,4 +1123,52 @@ class CreateController extends AbstractActionController
         $this->consoleFooter('routing was successfully created');
 
     }
+
+    /**
+     * Create the routing for a module help
+     */
+    public function routingHelp()
+    {
+        // output header
+        $this->consoleHeader('Create the routing for a module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create routing <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <module_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of module to create the routing for.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --single|-s    ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Create single standard route for the module.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
 }

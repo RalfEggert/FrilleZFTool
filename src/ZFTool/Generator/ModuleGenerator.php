@@ -504,6 +504,11 @@ class ModuleGenerator
         $moduleClass = str_replace($path . '/module/', '', $directory) . '\Module';
         $moduleName  = str_replace($path . '/module/', '', $directory);
 
+        // check for module file
+        if (!file_exists($moduleFile)) {
+            return false;
+        }
+
         // get file and class reflection
         $fileReflection  = new FileReflection($moduleFile, true);
         $classReflection = $fileReflection->getClass($moduleClass);

@@ -60,6 +60,11 @@ class GenerateController extends AbstractActionController
      */
     public function classmapAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->classmapHelp();
+        }
+
         // output header
         $this->consoleHeader('Generating classmap');
 
@@ -68,6 +73,15 @@ class GenerateController extends AbstractActionController
         $destination   = $this->requestOptions->getDestination();
         $relativePath  = '';
         $usingStdout   = false;
+
+        // check if directory provided
+        if (is_null($directory)) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the directory to create the classmap in'),
+                )
+            );
+        }
 
         // Validate directory
         if (!is_dir($directory)) {
@@ -172,12 +186,20 @@ class GenerateController extends AbstractActionController
             $classMap, $destination, true
         );
 
+        // update module class with classmap autoloading
+        $updateFlag = $this->moduleGenerator->updateModuleWithClassmapAutoloader();
+
         // continue output
         if (!$usingStdout) {
-            $this->console->writeLine('       => Update module class to use classmap for autoloading');
+            if ($updateFlag) {
+                $this->console->writeLine('       => Update module class to use classmap for autoloading');
+            } else {
+                $this->console->writeLine();
+                $this->console->write(' Warn ', Color::NORMAL, Color::RED);
+                $this->console->write(' ');
+                $this->console->writeLine('=> Could not find a module class in directory to update the autoloading for the new classmap', Color::RED);
+            }
         }
-        // update module class with classmap autoloading
-        $this->moduleGenerator->updateModuleWithClassmapAutoloader();
 
         // end output
         if (!$usingStdout) {
@@ -190,6 +212,49 @@ class GenerateController extends AbstractActionController
 
         // output footer
         $this->consoleFooter('classmap was successfully generated');
+
+    }
+
+    /**
+     * Generate a Classmap help
+     */
+    public function classmapHelp()
+    {
+        // output header
+        $this->consoleHeader('Generate a Classmap for a directory / module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php generate classmap <directory> [<destination>]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <directory>     ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Directory to scan for PHP classes (use "." to use current directory).',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<destination>] ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) File name for class map file or - for standard output.',
+            Color::NORMAL
+        );
+        $this->console->writeLine(
+            '                       Defaults to autoload_classmap.php inside <directory>.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
 
     }
 }

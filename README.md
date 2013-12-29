@@ -54,24 +54,24 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
 #### Show all controllers for a module
 
-    zf.php controllers <moduleName> [<path>]
+    zf.php controllers <module_name> [<path>]
 
-    <moduleName>        name of module
+    <module_name>       Name of module
     [<path>]            (Optional) path to a ZF2 application
 
 #### Show all actions for a controller in a module
 
-    zf.php actions <controllerName> <moduleName> [<path>]
+    zf.php actions <module_name> <controller_name> [<path>]
 
-    <controllerName>    name of controller
-    <moduleName>        name of module
+    <module_name>       Name of module
+    <controller_name>   Name of controller
     [<path>]            (Optional) path to a ZF2 application
 
 ### Diagnostics
 
-    zf.php diag [<testGroupName>] [options]
+    zf.php diag [<test_group_name>] [options]
 
-    [testGroupName]     (Optional) name of module to test
+    [<test_group_name>] (Optional) name of module to test
     --verbose | -v      Display detailed information.
     --break   | -b      Stop testing on first failure.
     --quiet   | -q      Do not display any output unless an error occurs.
@@ -87,19 +87,19 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
 #### Module creation
 
-    zf.php create module <moduleName> [<path>] [options]
+    zf.php create module <module_name> [<path>] [options]
 
-    <moduleName>        Name of  module to be created
+    <module_name>       Name of module to be created
     [<path>]            (Optional) path to a ZF2 application
     --ignore  | -i      Ignore coding conventions
     --apidocs | -a      Prevent the api doc block generation
 
 #### Controller creation:
 
-	zf.php create controller <controllerName> <moduleName> [<path>] [options]
+	zf.php create controller <controller_name> <module_name> [<path>] [options]
 
-	<controllerName>    Name of  controller to be created
-	<moduleName>        Module in which controller should be created
+	<controller_name>   Name of controller to be created
+	<module_name>       Module in which controller should be created
 	[<path>]            (Optional) path to a ZF2 application
     --factory | -f      Create a factory for the controller
     --ignore  | -i      Ignore coding conventions
@@ -108,30 +108,30 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
 #### Controller factory creation:
 
-	zf.php create controller-factory <controllerName> <moduleName> [<path>] [options]
+	zf.php create controller-factory <controller_name> <module_name> [<path>] [options]
 
-	<controllerName>    Name of  controller the factory has to be created
-	<moduleName>        Module in which the controller factory should be created
-	<path>              Root path of a ZF2 application where to create the controller factory
+	<controller_name>   Name of controller the factory has to be created
+	<module_name>       Module in which the controller factory should be created
+	[<path>]            (Optional) path to a ZF2 application
     --config  | -c      Prevent that module configuration is updated
     --apidocs | -a      Prevent the api doc block generation
 
 #### Action creation:
 
-	zf.php create action <actionName> <controllerName> <moduleName> [<path>] [options]
+	zf.php create action <action_name> <controller_name> <module_name> [<path>] [options]
 
-	<actionName>        Name of action to be created
-	<controllerName>    Name of controller in which action should be created
-	<moduleName>        Module containing the controller
+	<action_name>       Name of action to be created
+	<controller_name>   Name of controller in which action should be created
+	<module_name>       Module containing the controller
 	[<path>]            (Optional) path to a ZF2 application
     --ignore  | -i      Ignore coding conventions
     --apidocs | -a      Prevent the api doc block generation
 
 #### Routing creation:
 
-	zf.php create routing <moduleName> [<path>] [options]
+	zf.php create routing <module_name> [<path>] [options]
 
-	<moduleName>        Module containing the controller
+	<module_name>       Name of module to create the routing for
 	[<path>]            (Optional) path to a ZF2 application
     --single  | -s      Create single standard route for the module
 
@@ -146,18 +146,18 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 
 #### Display a single config value
 
-    zf.php config get <configName> [<path>] [options]
+    zf.php config get <config_name> [<path>] [options]
 
-    <configName>        Configuration key, i.e. db.host
+    <config_name>       Configuration key, i.e. db.host
     [<path>]            (Optional) path to a ZF2 application
     --local   | -l      Use local configuration file
 
 #### Set a single config value (to change scalar values in local configuration file)
 
-    zf.php config set <configName> <configValue> [<path>]
+    zf.php config set <config_name> <config_value> [<path>]
 
-    <configName>        Configuration key, i.e. db.host
-    <configValue>       Configuration value, i.e. localhost
+    <config_name>       Configuration key, i.e. db.host
+    <config_value>      Configuration value, i.e. localhost
     [<path>]            (Optional) path to a ZF2 application
 
 ### Generate a Classmap for a directory / module
@@ -165,15 +165,15 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
     zf.php generate classmap <directory> [<destination>]
 
     <directory>         Directory to scan for PHP classes (use "." to use current directory)
-    <destination>       (Optional) File name for class map file or - for standard output.
+    [<destination>]     (Optional) File name for class map file or - for standard output.
                         Defaults to autoload_classmap.php inside <directory>.
 
 ### ZF library installation
 
-    zf.php install zf <path> [<version>]
+    zf.php install <path> [<version>]
 
     <path>              Path where to install the ZF2 library
-    <version>           (Optional) Version to install, defaults to the last version available
+    [<version>]         (Optional) Version to install, defaults to the last version available
 
 ### Compile the PHAR file
 
@@ -201,13 +201,13 @@ Note: If the above fails due to permissions, run the mv line again with sudo.
  * Create Factory class for given controller [DONE]
  * Add configuration for classmap generation [DONE]
  * Refactor controllers [DONE]
+ * Re-organize help page [DONE]
  * Create skeleton classes and configuration for  [IN PROGRESS]
    * view helpers
    * controller plugins
    * forms
    * input filters
    * hydrators
- * Re-organize help page [IN PROGRESS]
  * Write tests for [NOT STARTED YET]
    * generator
    * configurator

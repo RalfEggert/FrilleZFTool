@@ -43,6 +43,11 @@ class ConfigController extends AbstractActionController
      */
     public function listAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->listHelp();
+        }
+
         // output header
         $this->consoleHeader('Fetching requested configuration');
 
@@ -101,10 +106,54 @@ class ConfigController extends AbstractActionController
     }
 
     /**
+     * List configuration help
+     */
+    public function listHelp()
+    {
+        // output header
+        $this->consoleHeader('List all configuration option', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php config list [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       [<path>]     ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --local|-l   ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Use local configuration file.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
      * Get configuration by key
      */
     public function getAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->getHelp();
+        }
+
         // output header
         $this->consoleHeader('Fetching requested configuration');
 
@@ -181,10 +230,62 @@ class ConfigController extends AbstractActionController
     }
 
     /**
+     * Get configuration by key help
+     */
+    public function getHelp()
+    {
+        // output header
+        $this->consoleHeader('Display a single config value', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php config get <config_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <config_name> ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Configuration key, i.e. db.host.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --local|-l    ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Use local configuration file.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
      * Set configuration by key
      */
     public function setAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->setHelp();
+        }
+
         // output header
         $this->consoleHeader('Setting requested configuration');
 
@@ -230,4 +331,53 @@ class ConfigController extends AbstractActionController
         $this->consoleFooter('requested configuration was successfully changed');
 
     }
+
+    /**
+     * Set configuration by key help
+     */
+    public function setHelp()
+    {
+        // output header
+        $this->consoleHeader('Set a single config value (to change scalar values in local configuration file)', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php config set <config_name> <config_value> [<path>]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <config_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Configuration key, i.e. db.host.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <config_value> ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Configuration value, i.e. localhost.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+
 }

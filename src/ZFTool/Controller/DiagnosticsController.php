@@ -60,11 +60,18 @@ class DiagnosticsController extends AbstractActionController
     }
 
     /**
+     * Run diagnostics
+     *
      * @return ConsoleModel|ViewModel
      * @throws \ZFTool\Diagnostics\Exception\RuntimeException
      */
     public function runAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->runHelp();
+        }
+
         // get needed options to shorten code
         $flagVerbose   = $this->requestOptions->getFlagVerbose();
         $flagDebug     = $this->requestOptions->getFlagDebug();
@@ -264,6 +271,73 @@ class DiagnosticsController extends AbstractActionController
         }
 
         return $model;
+    }
+
+    /**
+     * Run diagnostics help
+     */
+    public function runHelp()
+    {
+        // output header
+        $this->consoleHeader('Run the diagnostics', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php diag [<test_group_name>] [options]',
+            Color::GREEN
+        );
+        $this->console->writeLine(
+            '       zf.php diagnostics [<test_group_name>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       [<test_group_name>] ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) name of module to test.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --verbose|-v        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Display detailed information.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --break|-b          ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Stop testing on first failure.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --quiet|-q          ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Do not display any output unless an error occurs.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --debug|-d          ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Display raw debug info from tests.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
     }
 
 }

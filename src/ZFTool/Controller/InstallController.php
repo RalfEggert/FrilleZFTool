@@ -43,6 +43,11 @@ class InstallController extends AbstractActionController
      */
     public function zfAction()
     {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->zfHelp();
+        }
+
         // output header
         $this->consoleHeader('Installing Zend Framework 2 library');
 
@@ -60,12 +65,21 @@ class InstallController extends AbstractActionController
         $tmpDir  = $this->requestOptions->getTmpDir();
         $version = $this->requestOptions->getVersion();
 
+        // check if path provided
+        if ($path == '.') {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the path to install the ZF2 library in.'),
+                )
+            );
+        }
+
         // check if path exists
         if (file_exists($path)) {
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The directory '),
-                    array(Color::RED    => realpath($path)),
+                    array(Color::RED    => $path),
                     array(Color::NORMAL => ' already exists. '),
                     array(Color::NORMAL => 'You cannot install the ZF2 library here.'),
                 )
@@ -132,7 +146,7 @@ class InstallController extends AbstractActionController
                 return $this->sendError(
                     array(
                         array(Color::NORMAL => 'Error during the copy of the files in '),
-                        array(Color::RED    => realpath($path)),
+                        array(Color::RED    => $path),
                     )
                 );
             }
@@ -148,6 +162,45 @@ class InstallController extends AbstractActionController
 
         // output footer
         $this->consoleFooter('library was successfully installed');
+
+    }
+
+    /**
+     * Show ZF2 version help
+     */
+    public function zfHelp()
+    {
+        // output header
+        $this->consoleHeader('ZF2 library installation', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php install <path> [<version>]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <path>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Path where to install the ZF2 library.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<version>] ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) Version to install, defaults to the last version available.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
 
     }
 }

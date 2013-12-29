@@ -73,79 +73,58 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
         // TODO: Load strings from a translation container
         return array(
 
-            'Basic information:',
-            'version | --version'                               => 'display current Zend Framework version',
-            'modules [<path>]'                                  => 'show loaded modules',
-            'controllers <moduleName> [<path>]'                 => 'show controllers for a module',
-            'actions <controllerName> <moduleName> [<path>]'    => 'show actions for a controller in a module',
+            'Add a -h option to each command to get additional help, examples:',
+            'create controller -h' => '',
+            'diag -h' => '',
+            'config set -h' => '',
 
-            'Diagnostics',
-            'diag [options] [module name]'  => 'run diagnostics',
-            array('[module name]'               , '(Optional) name of module to test'),
-            array('-v --verbose'                , 'Display detailed information.'),
-            array('-b --break'                  , 'Stop testing on first failure'),
-            array('-q --quiet'                  , 'Do not display any output unless an error occurs.'),
-            array('-d --debug'                     , 'Display raw debug info from tests.'),
+            'Display current Zend Framework 2 version:',
+            'version | --version' => '',
 
-            'Application configuration:',
-            'config list'               => 'list all configuration options',
-            'config get <name>'         => 'display a single config value, i.e. "config get db.host"',
-            'config set <name> <value>' => 'set a single config value (use only to change scalar values)',
+            'Show all modules within a ZF2 application',
+            'modules [<path>]' => '',
 
-            'Project creation:',
-            'create project <path>'     => 'create a skeleton application',
-            array('<path>', 'The path of the project to be created'),
+            'Show all controllers for a module',
+            'controllers <module_name> [<path>]' => '',
 
-            'Module creation:',
-            'create module <moduleName> [<path>] [--ignore|-i] [--apidocs|-a]'     => 'create a module',
-            array('<moduleName>', 'The name of the module to be created'),
-            array('<path>', 'The root path of a ZF2 application where to create the module'),
-            array('--ignore | -i', 'Ignore coding conventions'),
-            array('--apidocs | -a', 'Prevent the api doc block generation'),
+            'Show all actions for a controller in a module',
+            'actions <module_name> <controller_name> [<path>]' => '',
 
-            'Controller creation:',
-            'create controller <controllerName> <moduleName> [<path>] [--factory|-f] [--ignore|-i] [--config|-c] [--apidocs|-a]' => 'create a controller in module',
-            array('<controllerName>', 'The name of the controller to be created'),
-            array('<moduleName>', 'The module in which the controller should be created'),
-            array('<path>', 'The root path of a ZF2 application where to create the controller'),
-            array('--factory | -f', 'Create a factory for the controller'),
-            array('--ignore | -i', 'Ignore coding conventions'),
-            array('--config | -c', 'Prevent that module configuration is updated'),
-            array('--apidocs | -a', 'Prevent the api doc block generation'),
+            'Run diagnostics:',
+            'diag [<test_group_name>] [options]' => '',
 
-            'Action creation:',
-            'create action <actionName> <controllerName> <moduleName> [<path>] [--ignore|-i] [--apidocs|-a]' => 'create an action in a controller',
-            array('<actionName>', 'The name of the action to be created'),
-            array('<controllerName>', 'The name of the controller in which the action should be created'),
-            array('<moduleName>', 'The module containing the controller'),
-            array('<path>', 'The root path of a ZF2 application where to create the action'),
-            array('--ignore | -i', 'Ignore coding conventions'),
-            array('--apidocs | -a', 'Prevent the api doc block generation'),
+            'List all configuration options:',
+            'config list [<path>] [options]' => '',
 
-            'Route creation:',
-            'create routing <moduleName> [<path>] [--single|-s]' => 'create the routing for a module',
-            array('<moduleName>', 'The module containing the controller'),
-            array('<path>', 'The root path of a ZF2 application where to create the action'),
-            array('--single | -s', 'Create a single standard route for the module'),
+            'Display a single config value:',
+            'config get <config_name> [<path>] [options]' => '',
 
-            'Controller factory creation:',
-            'create controller-factory <controllerName> <moduleName> [<path>] [--config|-c] [--apidocs|-a]' => 'create a controller factory in module',
-            array('<controllerName>', 'The name of the controller the factory has to be created'),
-            array('<moduleName>', 'The module in which the controller factory should be created'),
-            array('<path>', 'The root path of a ZF2 application where to create the controller factory'),
-            array('--config | -c', 'Prevent that module configuration is updated'),
-            array('--apidocs | -a', 'Prevent the api doc block generation'),
+            'Set a single config value (to change scalar values in local configuration file):',
+            'config set <config_name> <config_value> [<path>]' => '',
 
-            'Classmap generator:',
+            'Create a skeleton application:',
+            'create project <path>' => '',
+
+            'Create a module:',
+            'create module <module_name> [<path>] [options]' => '',
+
+            'Create a controller in module:',
+            'create controller <controller_name> <module_name> [<path>] [options]' => '',
+
+            'Create a controller factory in module:',
+            'create controller-factory <controller_name> <module_name> [<path>] [options]' => '',
+
+            'Create an action in a controller:',
+            'create action <action_name> <controller_name> <module_name> [<path>] [options]' => '',
+
+            'Create the routing for a module:',
+            'create routing <module_name> [<path>] [options]' => '',
+
+            'Generate a Classmap for a directory / module:',
             'generate classmap <directory> [<destination>]' => '',
-            array('<directory>',        'The directory to scan for PHP classes (use "." to use current directory)'),
-            array('<destination>',    'File name for generated class map file  or - for standard output. '.
-                                        'If not supplied, defaults to autoload_classmap.php inside <directory>.'),
 
-            'Zend Framework 2 installation:',
-            'install zf <path> [<version>]' => '',
-            array('<path>', 'The directory where to install the ZF2 library'),
-            array('<version>', 'The version to install, if not specified uses the last available'),
+            'Install ZF2 library to a path:',
+            'install <path> [<version>]' => '',
         );
     }
 }
