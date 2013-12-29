@@ -2,89 +2,205 @@
 
 namespace ZFTool\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\View\Model\ViewModel;
-use Zend\View\Model\ConsoleModel;
-use ZFTool\Model\Zf;
-use ZFTool\Model\Utility;
+use Zend\Console\Adapter\AdapterInterface;
 use Zend\Console\ColorInterface as Color;
+use Zend\Mvc\Controller\AbstractActionController;
+use ZFTool\Model\Utility;
+use ZFTool\Model\Zf;
+use ZFTool\Options\RequestOptions;
 
+/**
+ * Class InstallController
+ *
+ * @package ZFTool\Controller
+ */
 class InstallController extends AbstractActionController
 {
+    /**
+     * @var AdapterInterface
+     */
+    protected $console;
 
+    /**
+     * @var RequestOptions
+     */
+    protected $requestOptions;
+
+    /**
+     * @param AdapterInterface $console
+     * @param ModuleGenerator  $moduleGenerator
+     */
+    function __construct(
+        AdapterInterface $console, RequestOptions $requestOptions
+    ) {
+        // setup dependencies
+        $this->console        = $console;
+        $this->requestOptions = $requestOptions;
+    }
+
+    /**
+     * @return mixed
+     */
     public function zfAction()
     {
-        if (!extension_loaded('zip')) {
-            return $this->sendError('You need to install the ZIP extension of PHP');
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->zfHelp();
         }
-        $console = $this->getServiceLocator()->get('console');
-        $tmpDir  = sys_get_temp_dir();
-        $request = $this->getRequest();
-        $version = $request->getParam('version');
-        $path    = rtrim($request->getParam('path'), '/');
 
-        if (file_exists($path)) {
-            return $this->sendError (
-                "The directory $path already exists. You cannot install the ZF2 library here."
+        // output header
+        $this->consoleHeader('Installing Zend Framework 2 library');
+
+        // check for zip extension
+        if (!extension_loaded('zip')) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'You need to install the ZIP extension of PHP.'),
+                )
             );
         }
 
+        // get needed options to shorten code
+        $path    = $this->requestOptions->getPath();
+        $tmpDir  = $this->requestOptions->getTmpDir();
+        $version = $this->requestOptions->getVersion();
+
+        // check if path provided
+        if ($path == '.') {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the path to install the ZF2 library in.'),
+                )
+            );
+        }
+
+        // check if path exists
+        if (file_exists($path)) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The directory '),
+                    array(Color::RED    => $path),
+                    array(Color::NORMAL => ' already exists. '),
+                    array(Color::NORMAL => 'You cannot install the ZF2 library here.'),
+                )
+            );
+        }
+
+        // check version
         if (empty($version)) {
             $version = Zf::getLastVersion();
             if (false === $version) {
                 return $this->sendError (
-                    "I cannot connect to the Zend Framework website."
+                    array(
+                        array(Color::NORMAL => 'I cannot connect to the Zend Framework website.'),
+                    )
                 );
             }
         } else {
             if (!Zf::checkVersion($version)) {
                 return $this->sendError (
-                    "The specified ZF version, $version, doesn't exist."
+                    array(
+                        array(Color::NORMAL => 'The specified ZF version, '),
+                        array(Color::RED    => $version),
+                        array(Color::NORMAL => ' does not exist.'),
+                    )
                 );
             }
         }
 
+        // get tmp file and check it
         $tmpFile = ZF::getTmpFileName($tmpDir, $version);
         if (!file_exists($tmpFile)) {
             if (!Zf::downloadZip($tmpFile, $version)) {
                 return $this->sendError (
-                    "I cannot download the ZF2 library from github."
+                    array(
+                        array(Color::NORMAL => 'I cannot download the ZF2 library from GitHub.'),
+                    )
                 );
             }
         }
 
+        // unzip archive
         $zip = new \ZipArchive;
         if ($zip->open($tmpFile)) {
             $zipFolders = $zip->statIndex(0);
             $zipFolder = $tmpDir . '/' . rtrim($zipFolders['name'], "/");
+
             if (!$zip->extractTo($tmpDir)) {
-                return $this->sendError("Error during the unzip of $tmpFile.");
+                return $this->sendError(
+                    array(
+                        array(Color::NORMAL => 'Error during the unzip of '),
+                        array(Color::RED    => $tmpFile),
+                    )
+                );
             }
 
             $result = Utility::copyFiles($zipFolder, $path);
             if (file_exists($zipFolder)) {
                 Utility::deleteFolder($zipFolder);
             }
+
             $zip->close();
+
             if (false === $result) {
-                return $this->sendError("Error during the copy of the files in $path.");
+                return $this->sendError(
+                    array(
+                        array(Color::NORMAL => 'Error during the copy of the files in '),
+                        array(Color::RED    => $path),
+                    )
+                );
             }
         }
 
-        $console->writeLine("The ZF library $version has been installed in $path.", Color::GREEN);
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+
+        $this->console->write('The ZF library ');
+        $this->console->write($version, Color::GREEN);
+        $this->console->write(' has been installed in ');
+        $this->console->writeLine(realpath($path), Color::GREEN);
+
+        // output footer
+        $this->consoleFooter('library was successfully installed');
+
     }
 
     /**
-     * Send an error message to the console
-     *
-     * @param  string $msg
-     * @return ConsoleModel
+     * Show ZF2 version help
      */
-    protected function sendError($msg)
+    public function zfHelp()
     {
-        $m = new ConsoleModel();
-        $m->setErrorLevel(2);
-        $m->setResult($msg . PHP_EOL);
-        return $m;
+        // output header
+        $this->consoleHeader('ZF2 library installation', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php install <path> [<version>]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <path>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Path where to install the ZF2 library.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<version>] ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) Version to install, defaults to the last version available.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
     }
 }

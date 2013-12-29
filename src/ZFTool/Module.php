@@ -3,16 +3,16 @@
 namespace ZFTool;
 
 use Zend\Console\Adapter\AdapterInterface as ConsoleAdapterInterface;
+use Zend\Console\ColorInterface as Color;
 use Zend\EventManager\EventInterface;
-use Zend\Mvc\ModuleRouteListener;
-use Zend\ModuleManager\Feature\ConsoleUsageProviderInterface;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
+use Zend\ModuleManager\Feature\ConsoleUsageProviderInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
 class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterface, ConfigProviderInterface
 {
-    const NAME    = 'ZFTool - Zend Framework 2 command line Tool';
+    const NAME    = 'ZFTool - Zend Framework 2 command line Tool, forked and pimped by Ralf Eggert';
 
     /**
      * @var ServiceLocatorInterface
@@ -42,7 +42,25 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
 
     public function getConsoleBanner(ConsoleAdapterInterface $console)
     {
-        return self::NAME;
+        $console->writeLine();
+        $console->writeLine(
+            str_pad('', $console->getWidth() - 1, ' ', STR_PAD_RIGHT),
+            Color::NORMAL,
+            Color::GREEN
+        );
+        $console->writeLine(
+            str_pad(' ' . self::NAME, $console->getWidth() - 1, ' ', STR_PAD_BOTH),
+            Color::NORMAL,
+            Color::GREEN
+        );
+        $console->writeLine(
+            str_pad('', $console->getWidth() - 1, ' ', STR_PAD_RIGHT),
+            Color::NORMAL,
+            Color::GREEN
+        );
+        $console->writeLine();
+
+        return 'Usage:';
     }
 
     public function getConsoleUsage(ConsoleAdapterInterface $console)
@@ -55,57 +73,58 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
         // TODO: Load strings from a translation container
         return array(
 
-            'Basic information:',
-            'modules [list]'              => 'show loaded modules',
-            'version | --version'         => 'display current Zend Framework version',
+            'Add a -h option to each command to get additional help, examples:',
+            'create controller -h' => '',
+            'diag -h' => '',
+            'config set -h' => '',
 
-            'Diagnostics',
-            'diag [options] [module name]'  => 'run diagnostics',
-            array('[module name]'               , '(Optional) name of module to test'),
-            array('-v --verbose'                , 'Display detailed information.'),
-            array('-b --break'                  , 'Stop testing on first failure'),
-            array('-q --quiet'                  , 'Do not display any output unless an error occurs.'),
-            array('--debug'                     , 'Display raw debug info from tests.'),
+            'Display current Zend Framework 2 version:',
+            'version | --version' => '',
 
-            'Application configuration:',
-            'config list'               => 'list all configuration options',
-            'config get <name>'         => 'display a single config value, i.e. "config get db.host"',
-            'config set <name> <value>' => 'set a single config value (use only to change scalar values)',
+            'Show all modules within a ZF2 application',
+            'modules [<path>]' => '',
 
-            'Project creation:',
-            'create project <path>'     => 'create a skeleton application',
-            array('<path>', 'The path of the project to be created'),
+            'Show all controllers for a module',
+            'controllers <module_name> [<path>]' => '',
 
-            'Module creation:',
-            'create module <name> [<path>]'     => 'create a module',
-            array('<name>', 'The name of the module to be created'),
-            array('<path>', 'The root path of a ZF2 application where to create the module'),
+            'Show all actions for a controller in a module',
+            'actions <module_name> <controller_name> [<path>]' => '',
 
-            'Controller creation:',
-            'create controller <name> <module> [<path>]' => 'create a controller in module',
-            array('<name>', 'The name of the controller to be created'),
-            array('<module>', 'The module in which the controller should be created'),
-            array('<path>', 'The root path of a ZF2 application where to create the controller'),
+            'Run diagnostics:',
+            'diag [<test_group_name>] [options]' => '',
 
-            'Action creation:',
-            'create action <name> <controllerName> <module> [<path>]' => 'create an action in a controller',
-            array('<name>', 'The name of the action to be created'),
-            array('<controllerName>', 'The name of the controller in which the action should be created'),
-            array('<module>', 'The module containing the controller'),
-            array('<path>', 'The root path of a ZF2 application where to create the action'),
+            'List all configuration options:',
+            'config list [<path>] [options]' => '',
 
-            'Classmap generator:',
-            'classmap generate <directory> <classmap file> [--append|-a] [--overwrite|-w]' => '',
-            array('<directory>',        'The directory to scan for PHP classes (use "." to use current directory)'),
-            array('<classmap file>',    'File name for generated class map file  or - for standard output. '.
-                                        'If not supplied, defaults to autoload_classmap.php inside <directory>.'),
-            array('--append | -a',      'Append to classmap file if it exists'),
-            array('--overwrite | -w',   'Whether or not to overwrite existing classmap file'),
+            'Display a single config value:',
+            'config get <config_name> [<path>] [options]' => '',
 
-            'Zend Framework 2 installation:',
-            'install zf <path> [<version>]' => '',
-            array('<path>', 'The directory where to install the ZF2 library'),
-            array('<version>', 'The version to install, if not specified uses the last available'),
+            'Set a single config value (to change scalar values in local configuration file):',
+            'config set <config_name> <config_value> [<path>]' => '',
+
+            'Create a skeleton application:',
+            'create project <path>' => '',
+
+            'Create a module:',
+            'create module <module_name> [<path>] [options]' => '',
+
+            'Create a controller in module:',
+            'create controller <controller_name> <module_name> [<path>] [options]' => '',
+
+            'Create a controller factory in module:',
+            'create controller-factory <controller_name> <module_name> [<path>] [options]' => '',
+
+            'Create an action in a controller:',
+            'create action <action_name> <controller_name> <module_name> [<path>] [options]' => '',
+
+            'Create the routing for a module:',
+            'create routing <module_name> [<path>] [options]' => '',
+
+            'Generate a Classmap for a directory / module:',
+            'generate classmap <directory> [<destination>]' => '',
+
+            'Install ZF2 library to a path:',
+            'install <path> [<version>]' => '',
         );
     }
 }

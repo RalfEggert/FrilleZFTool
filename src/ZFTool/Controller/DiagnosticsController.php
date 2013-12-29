@@ -2,45 +2,104 @@
 
 namespace ZFTool\Controller;
 
+use Zend\Console\Adapter\AdapterInterface;
+use Zend\Console\ColorInterface as Color;
+use Zend\Console\Request as ConsoleRequest;
+use Zend\ModuleManager\ModuleManager;
+use Zend\Mvc\Controller\AbstractActionController;
+use Zend\View\Model\ConsoleModel;
+use Zend\View\Model\ViewModel;
 use ZFTool\Diagnostics\Exception\RuntimeException;
 use ZFTool\Diagnostics\Reporter\BasicConsole;
 use ZFTool\Diagnostics\Reporter\VerboseConsole;
 use ZFTool\Diagnostics\Runner;
 use ZFTool\Diagnostics\Test\Callback;
 use ZFTool\Diagnostics\Test\TestInterface;
-use Zend\Console\Request as ConsoleRequest;
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\Version\Version;
-use ZFTool\Module;
-use Zend\View\Model\ConsoleModel;
-use Zend\View\Model\ViewModel;
+use ZFTool\Options\RequestOptions;
 
+/**
+ * Class DiagnosticsController
+ *
+ * @package ZFTool\Controller
+ */
 class DiagnosticsController extends AbstractActionController
 {
+    /**
+     * @var AdapterInterface
+     */
+    protected $console;
 
+    /**
+     * @var RequestOptions
+     */
+    protected $requestOptions;
+
+    /**
+     * @var array
+     */
+    protected $configuration;
+
+    /**
+     * @var ModuleManager
+     */
+    protected $moduleManager;
+
+    /**
+     * @param AdapterInterface $console
+     * @param ModuleGenerator  $moduleGenerator
+     */
+    function __construct(
+        AdapterInterface $console, RequestOptions $requestOptions,
+        array $configuration, ModuleManager $moduleManager
+    ) {
+        // setup dependencies
+        $this->console        = $console;
+        $this->requestOptions = $requestOptions;
+        $this->configuration  = $configuration;
+        $this->moduleManager  = $moduleManager;
+    }
+
+    /**
+     * Run diagnostics
+     *
+     * @return ConsoleModel|ViewModel
+     * @throws \ZFTool\Diagnostics\Exception\RuntimeException
+     */
     public function runAction()
     {
-        $sm = $this->getServiceLocator();
-        /* @var $console \Zend\Console\Adapter\AdapterInterface */
-        /* @var $config array */
-        /* @var $mm \Zend\ModuleManager\ModuleManager */
-        $console = $sm->get('console');
-        $config = $sm->get('Configuration');
-        $mm = $sm->get('ModuleManager');
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->runHelp();
+        }
 
-        // TODO: After ZF 2.2.0 is out, remove short flags checks.
-        $verbose        = $this->params()->fromRoute('verbose', false) || $this->params()->fromRoute('v', false);
-        $debug          = $this->params()->fromRoute('debug', false) || $this->params()->fromRoute('d', false);
-        $quiet          = !$verbose && !$debug &&
-             ( $this->params()->fromRoute('quiet', false) || $this->params()->fromRoute('q', false) );
-        $breakOnFailure = $this->params()->fromRoute('break', false) || $this->params()->fromRoute('b', false);
-        $testGroupName  = $this->params()->fromRoute('testGroupName', false);
+        // get needed options to shorten code
+        $flagVerbose   = $this->requestOptions->getFlagVerbose();
+        $flagDebug     = $this->requestOptions->getFlagDebug();
+        $flagQuiet     = $this->requestOptions->getFlagQuiet();
+        $flagBreak     = $this->requestOptions->getFlagBreak();
+        $testGroupName = $this->requestOptions->getTestGroupName();
+
+        // output header
+        if (!$flagQuiet) {
+            $this->consoleHeader('Starting diagnostics for Zend Framework 2 project');
+        }
+
+        // start output
+        if (!$flagQuiet) {
+            $this->console->writeLine('       => Get basic diag configuration');
+        }
 
         // Get basic diag configuration
-        $config = isset($config['diagnostics']) ? $config['diagnostics'] : array();
+        $config = isset($this->configuration['diagnostics']) ? $this->configuration['diagnostics'] : array();
+
+        // start output
+        if (!$flagQuiet) {
+            $this->console->writeLine('       => Collect diag tests from modules ');
+        }
 
         // Collect diag tests from modules
-        $modules = $mm->getLoadedModules(false);
+        $modules = $this->moduleManager->getLoadedModules(false);
+
         foreach ($modules as $moduleName => $module) {
             if (is_callable(array($module, 'getDiagnostics'))) {
                 $tests = $module->getDiagnostics();
@@ -59,6 +118,11 @@ class DiagnosticsController extends AbstractActionController
         // Filter array if a test group name has been provided
         if ($testGroupName) {
             $config = array_intersect_key($config, array($testGroupName => 1));
+        }
+
+        // start output
+        if (!$flagQuiet) {
+            $this->console->writeLine('       => Analyze test definitions and construct test instances');
         }
 
         // Analyze test definitions and construct test instances
@@ -121,8 +185,8 @@ class DiagnosticsController extends AbstractActionController
                 }
 
                 // Try to expand test identifier using Service Locator
-                if (is_string($testName) && $sm->has($testName)) {
-                    $test = $sm->get($testName);
+                if (is_string($testName) && $this->getServiceLocator()->has($testName)) {
+                    $test = $this->getServiceLocator()->get($testName);
 
                 // Try to use the built-in test class
                 } elseif (is_string($testName) && class_exists('ZFTool\Diagnostics\Test\\' . $testName)) {
@@ -167,16 +231,22 @@ class DiagnosticsController extends AbstractActionController
             }
         }
 
+        if (!$flagQuiet) {
+            $this->console->writeLine();
+            $this->console->write(' Diag ', Color::NORMAL, Color::CYAN);
+            $this->console->write(' ');
+        }
+
         // Configure test runner
         $runner = new Runner();
         $runner->addTests($testCollection);
-        $runner->getConfig()->setBreakOnFailure($breakOnFailure);
+        $runner->getConfig()->setBreakOnFailure($flagBreak);
 
-        if (!$quiet && $this->getRequest() instanceof ConsoleRequest) {
-            if ($verbose || $debug) {
-                $runner->addReporter(new VerboseConsole($console, $debug));
+        if (!$flagQuiet && $this->getRequest() instanceof ConsoleRequest) {
+            if ($flagVerbose || $flagDebug) {
+                $runner->addReporter(new VerboseConsole($this->console, $flagDebug));
             } else {
-                $runner->addReporter(new BasicConsole($console));
+                $runner->addReporter(new BasicConsole($this->console));
             }
         }
 
@@ -201,6 +271,73 @@ class DiagnosticsController extends AbstractActionController
         }
 
         return $model;
+    }
+
+    /**
+     * Run diagnostics help
+     */
+    public function runHelp()
+    {
+        // output header
+        $this->consoleHeader('Run the diagnostics', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php diag [<test_group_name>] [options]',
+            Color::GREEN
+        );
+        $this->console->writeLine(
+            '       zf.php diagnostics [<test_group_name>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       [<test_group_name>] ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) name of module to test.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --verbose|-v        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Display detailed information.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --break|-b          ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Stop testing on first failure.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --quiet|-q          ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Do not display any output unless an error occurs.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --debug|-d          ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Display raw debug info from tests.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
     }
 
 }

@@ -2,113 +2,382 @@
 
 namespace ZFTool\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\Stdlib\ArrayUtils;
-use Zend\Version\Version;
-use Zend\Console\ColorInterface as Color;
 use Zend\Config\Writer\Ini as IniWriter;
-use ZFTool\Model\Config;
-use ZFTool\Module;
+use Zend\Console\Adapter\AdapterInterface;
+use Zend\Console\ColorInterface as Color;
+use Zend\Mvc\Controller\AbstractActionController;
+use ZFTool\Model\Config as ModuleConfig;
+use ZFTool\Options\RequestOptions;
 
+/**
+ * Class ConfigController
+ *
+ * @package ZFTool\Controller
+ */
 class ConfigController extends AbstractActionController
 {
+    /**
+     * @var AdapterInterface
+     */
+    protected $console;
 
+    /**
+     * @var RequestOptions
+     */
+    protected $requestOptions;
+
+    /**
+     * @param AdapterInterface $console
+     * @param ModuleGenerator  $moduleGenerator
+     */
+    function __construct(
+        AdapterInterface $console, RequestOptions $requestOptions
+    ) {
+        // setup dependencies
+        $this->console        = $console;
+        $this->requestOptions = $requestOptions;
+    }
+
+    /**
+     * List configuration
+     */
     public function listAction()
     {
-        $console = $this->getServiceLocator()->get('console');
-        $sm = $this->getServiceLocator();
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->listHelp();
+        }
 
-        $isLocal = $this->params()->fromRoute('local');
+        // output header
+        $this->consoleHeader('Fetching requested configuration');
 
-        if ($isLocal) {
-            $appdir = getcwd();
-            echo $appdir;
-            if (file_exists($appdir . '/config/autoload/local.php')) {
-                $config = include $appdir . '/config/autoload/local.php';
-            } else {
-                echo 'FILE NO EXIST' . PHP_EOL;
-                $config = array();
+        // get needed options to shorten code
+        $path      = realpath($this->requestOptions->getPath());
+        $flagLocal = $this->requestOptions->getFlagLocal();
+
+        // check for local file
+        if ($flagLocal) {
+            $configFile = $path . '/config/autoload/local.php';
+
+            // check if local config file exists
+            if (!file_exists($configFile)) {
+                return $this->sendError(
+                    'Local config file ' . $configFile . ' does not exist.'
+                );
             }
         } else {
-            $config = $sm->get('Configuration');
+            $configFile = $path . '/config/application.config.php';
         }
 
-        if (!is_array($config)){
-            $config = ArrayUtils::iteratorToArray($config, true);
+        // fetch config data
+        $configData = include $configFile;
+
+        // check if local config file exists
+        if (empty($configData)) {
+            return $this->sendError(
+                'Config file ' . $configFile . ' is empty.'
+            );
         }
 
-        $console->writeLine('Configuration:', Color::GREEN);
-        // print_r($config);
-        $ini = new IniWriter;
-        echo $ini->toString($config);
+        // start output
+        $this->console->write('       => Reading configuration file ');
+        $this->console->writeLine($configFile, Color::GREEN);
+        $this->console->writeLine();
+
+        // continue output
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+        $this->console->write('Configuration data');
+        $this->console->writeLine(PHP_EOL);
+
+        // output configuration as ini
+        $iniWriter = new IniWriter;
+        $this->console->writeLine(
+            str_pad('', $this->console->getWidth() - 1, '=', STR_PAD_RIGHT)
+        );
+        $this->console->writeLine(trim($iniWriter->toString($configData)));
+        $this->console->writeLine(
+            str_pad('', $this->console->getWidth() - 1, '=', STR_PAD_RIGHT)
+        );
+
+        // output footer
+        $this->consoleFooter('requested configuration was successfully displayed');
+
     }
 
+    /**
+     * List configuration help
+     */
+    public function listHelp()
+    {
+        // output header
+        $this->consoleHeader('List all configuration option', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php config list [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       [<path>]     ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --local|-l   ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Use local configuration file.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
+     * Get configuration by key
+     */
     public function getAction()
     {
-        $console = $this->getServiceLocator()->get('console');
-        $sm = $this->getServiceLocator();
-
-        $name = $this->params()->fromRoute('arg1');
-
-        if (!$name) {
-            $console->writeLine('config get <name> was not provided', Color::RED);
-            return;
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->getHelp();
         }
 
-        $isLocal = $this->params()->fromRoute('local');
+        // output header
+        $this->consoleHeader('Fetching requested configuration');
 
-        if ($isLocal) {
-            $appdir = getcwd();
-            $configFile = new Config($appdir . '/config/autoload/local.php');
-            $configFile->read($name);
-        } else {
-            $config = $sm->get('Configuration');
-            echo $name;
-            $value =  Config::findValueInArray($name, $config);
-            if (is_scalar($value)) {
-                echo ' = ' . $value;
-            } else {
-                echo ':' . PHP_EOL;
-                var_export($value);
+        // get needed options to shorten code
+        $path       = realpath($this->requestOptions->getPath());
+        $configName = $this->requestOptions->getConfigName();
+        $flagLocal  = $this->requestOptions->getFlagLocal();
+
+        // check for config name
+        if (!$configName) {
+            return $this->sendError(
+                'config get <configName> was not provided'
+            );
+        }
+
+        // check for local file
+        if ($flagLocal) {
+            $configFile = $path . '/config/autoload/local.php';
+
+            // check if local config file exists
+            if (!file_exists($configFile)) {
+                return $this->sendError(
+                    'Local config file ' . $configFile . ' does not exist.'
+                );
             }
-            echo PHP_EOL;
+        } else {
+            $configFile = $path . '/config/application.config.php';
         }
+
+        // fetch config data
+        $configData = include $configFile;
+
+        // check if local config file exists
+        if (empty($configData)) {
+            return $this->sendError(
+                'Config file ' . $configFile . ' is empty.'
+            );
+        }
+
+        // start output
+        $this->console->write('       => Reading configuration file ');
+        $this->console->writeLine($configFile, Color::GREEN);
+        $this->console->writeLine();
+
+        // find value in array
+        $configValue = ModuleConfig::findValueInArray($configName, $configData);
+
+        // start output
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+        $this->console->write('Configuration data for key ');
+        $this->console->writeLine($configName, Color::GREEN);
+        $this->console->writeLine();
+
+        // check config value
+        if (is_array($configValue)) {
+            $iniWriter = new IniWriter;
+            $this->console->writeLine(
+                str_pad('', $this->console->getWidth() - 1, '=', STR_PAD_RIGHT)
+            );
+            $this->console->writeLine(trim($iniWriter->toString($configValue)));
+            $this->console->writeLine(
+                str_pad('', $this->console->getWidth() - 1, '=', STR_PAD_RIGHT)
+            );
+        } elseif (is_null($configValue)) {
+            $this->console->writeLine('       => NULL');
+        } else {
+            $this->console->writeLine('       => ' . $configValue);
+        }
+
+        // output footer
+        $this->consoleFooter('requested configuration was successfully displayed');
+
     }
 
+    /**
+     * Get configuration by key help
+     */
+    public function getHelp()
+    {
+        // output header
+        $this->consoleHeader('Display a single config value', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php config get <config_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <config_name> ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Configuration key, i.e. db.host.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --local|-l    ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Use local configuration file.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
+     * Set configuration by key
+     */
     public function setAction()
     {
-        $console = $this->getServiceLocator()->get('console');
-        $sm = $this->getServiceLocator();
-
-        $name = $this->params()->fromRoute('arg1');
-        $value = $this->params()->fromRoute('arg2');
-
-        if ($value === 'null') {
-            $value = null;
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->setHelp();
         }
 
-        $appdir = getcwd();
-        $configPath = $appdir . '/config/autoload/local.php';
-        $configFile = new Config($configPath);
-        $configFile->write($name, $value);
+        // output header
+        $this->consoleHeader('Setting requested configuration');
 
-        echo 'Config file written at: ' . $configPath . PHP_EOL;
+        // get needed options to shorten code
+        $path        = realpath($this->requestOptions->getPath());
+        $configName  = $this->requestOptions->getConfigName();
+        $configValue = $this->requestOptions->getConfigValue();
+        $configFile  = $path . '/config/autoload/local.php';
+
+        // check for config name
+        if (!$configName) {
+            return $this->sendError(
+                'config get <configName> was not provided'
+            );
+        }
+
+        // start output
+        $this->console->write('       => Reading configuration file ');
+        $this->console->writeLine($configFile, Color::GREEN);
+        $this->console->write('       => Changing configuration data for key ');
+        $this->console->write($configName, Color::GREEN);
+        $this->console->write(' to value ');
+        $this->console->writeLine($configValue, Color::GREEN);
+        $this->console->write('       => Writing configuration file ');
+        $this->console->writeLine($configFile, Color::GREEN);
+        $this->console->writeLine();
+
+        // check for value
+        if ($configValue === 'null') {
+            $configValue = null;
+        }
+
+        // write local config file
+        $configData = new ModuleConfig($configFile);
+        $configData->write($configName, $configValue);
+
+        // continue output
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+        $this->console->writeLine('Configuration data was changed.');
+
+        // output footer
+        $this->consoleFooter('requested configuration was successfully changed');
+
     }
 
-    protected function getZF2Path()
+    /**
+     * Set configuration by key help
+     */
+    public function setHelp()
     {
-        if (getenv('ZF2_PATH')) {
-            return getenv('ZF2_PATH');
-        } elseif (get_cfg_var('zf2_path')) {
-            return get_cfg_var('zf2_path');
-        } elseif (is_dir('vendor/ZF2/library')) {
-            return 'vendor/ZF2/library';
-        } elseif (is_dir('vendor/zendframework/zendframework/library')) {
-            return 'vendor/zendframework/zendframework/library';
-        } elseif (is_dir('vendor/zendframework/zend-version')) {
-            return 'vendor/zendframework/zend-version';
-        }
-        return false;
+        // output header
+        $this->consoleHeader('Set a single config value (to change scalar values in local configuration file)', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php config set <config_name> <config_value> [<path>]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <config_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Configuration key, i.e. db.host.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <config_value> ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Configuration value, i.e. localhost.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
     }
+
 
 }

@@ -2,64 +2,163 @@
 
 namespace ZFTool\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\View\Model\ViewModel;
-use Zend\View\Model\ConsoleModel;
-use ZFTool\Model\Skeleton;
-use ZFTool\Model\Utility;
-use Zend\Console\ColorInterface as Color;
+use Zend\Code\Generator\Exception\RuntimeException as GeneratorException;
 use Zend\Code\Generator;
 use Zend\Code\Reflection;
-use Zend\Filter\Word\CamelCaseToDash as CamelCaseToDashFilter;
+use Zend\Console\Adapter\AdapterInterface;
+use Zend\Console\ColorInterface as Color;
+use Zend\Mvc\Controller\AbstractActionController;
+use Zend\View\Model\ConsoleModel;
+use ZFTool\Generator\ModuleConfigurator;
+use ZFTool\Generator\ModuleGenerator;
+use ZFTool\Model\Skeleton;
+use ZFTool\Model\Utility;
+use ZFTool\Options\RequestOptions;
 
+/**
+ * Class CreateController
+ *
+ * @package ZFTool\Controller
+ */
 class CreateController extends AbstractActionController
 {
+    /**
+     * @var AdapterInterface
+     */
+    protected $console;
 
+    /**
+     * @var RequestOptions
+     */
+    protected $requestOptions;
+
+    /**
+     * @var ModuleGenerator
+     */
+    protected $moduleGenerator;
+
+    /**
+     * @var ModuleConfigurator
+     */
+    protected $moduleConfigurator;
+
+    /**
+     * @param AdapterInterface $console
+     * @param ModuleGenerator  $moduleGenerator
+     */
+    function __construct(
+        AdapterInterface $console, RequestOptions $requestOptions,
+        ModuleGenerator $moduleGenerator, ModuleConfigurator $moduleConfigurator
+    ) {
+        // setup dependencies
+        $this->console            = $console;
+        $this->requestOptions     = $requestOptions;
+        $this->moduleGenerator    = $moduleGenerator;
+        $this->moduleConfigurator = $moduleConfigurator;
+    }
+
+    /**
+     * Create a project
+     *
+     * @return ConsoleModel
+     */
     public function projectAction()
     {
-        if (!extension_loaded('zip')) {
-            return $this->sendError('You need to install the ZIP extension of PHP');
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->projectHelp();
         }
-        if (!extension_loaded('openssl')) {
-            return $this->sendError('You need to install the OpenSSL extension of PHP');
-        }
-        $console = $this->getServiceLocator()->get('console');
-        $tmpDir  = sys_get_temp_dir();
-        $request = $this->getRequest();
-        $path    = rtrim($request->getParam('path'), '/');
 
-        if (file_exists($path)) {
-            return $this->sendError (
-                "The directory $path already exists. You cannot create a ZF2 project here."
+        // output header
+        $this->consoleHeader('Creating new Zend Framework 2 project');
+
+        // check for zip extension
+        if (!extension_loaded('zip')) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'You need to install the ZIP extension of PHP.'),
+                )
             );
         }
 
+        // check for openssl extension
+        if (!extension_loaded('openssl')) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'You need to install the OpenSSL extension of PHP.'),
+                )
+            );
+        }
+
+        // get needed options to shorten code
+        $path   = $this->requestOptions->getPath();
+        $tmpDir = $this->requestOptions->getTmpDir();
+
+        // check if path provided
+        if ($path == '.') {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the path to create the project in.'),
+                )
+            );
+        }
+
+        // check if path exists
+        if (file_exists($path)) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The directory '),
+                    array(Color::RED    => $path),
+                    array(Color::NORMAL => ' already exists. '),
+                    array(Color::NORMAL => 'You cannot create a ZF2 project here.'),
+                )
+            );
+        }
+
+        // check last commit
         $commit = Skeleton::getLastCommit();
         if (false === $commit) { // error on github connection
             $tmpFile = Skeleton::getLastZip($tmpDir);
             if (empty($tmpFile)) {
-                return $this->sendError('I cannot access the API of github.');
+                return $this->sendError(
+                    array(
+                        array(Color::NORMAL => 'I cannot access the API of GitHub.'),
+                    )
+                );
             }
-            $console->writeLine(
-                "Warning: I cannot connect to github, I will use the last download of ZF2 Skeleton.",
-                 Color::GRAY
+            $this->console->writeLine(
+                'Warning: I cannot connect to GitHub, I will use the last '
+                . 'download of ZF2 Skeleton.',
+                Color::LIGHT_RED
             );
         } else {
             $tmpFile = Skeleton::getTmpFileName($tmpDir, $commit);
         }
 
+        // check for Skeleton App
         if (!file_exists($tmpFile)) {
             if (!Skeleton::getSkeletonApp($tmpFile)) {
-                return $this->sendError('I cannot access the ZF2 skeleton application in github.');
+                return $this->sendError(
+                    array(
+                        array(Color::NORMAL => 'I cannot access the ZF2 skeleton application in GitHub.'),
+                    )
+                );
             }
         }
 
+        // set Zip Archive
         $zip = new \ZipArchive;
         if ($zip->open($tmpFile)) {
             $stateIndex0 = $zip->statIndex(0);
             $tmpSkeleton = $tmpDir . '/' . rtrim($stateIndex0['name'], "/");
             if (!$zip->extractTo($tmpDir)) {
-                return $this->sendError("Error during the unzip of $tmpFile.");
+                return $this->sendError(
+                    array(
+                        array(Color::NORMAL => 'Error during the unzip of '),
+                        array(Color::RED    => $tmpFile),
+                        array(Color::NORMAL => '.'),
+                    )
+                );
             }
             $result = Utility::copyFiles($tmpSkeleton, $path);
             if (file_exists($tmpSkeleton)) {
@@ -67,251 +166,1009 @@ class CreateController extends AbstractActionController
             }
             $zip->close();
             if (false === $result) {
-                return $this->sendError("Error during the copy of the files in $path.");
+                return $this->sendError(
+                    array(
+                        array(Color::NORMAL => 'Error during the copy of the files in '),
+                        array(Color::RED    => $path),
+                        array(Color::NORMAL => '.'),
+                    )
+                );
             }
         }
-        if (file_exists("$path/composer.phar")) {
-            exec("php $path/composer.phar self-update");
+
+        // check for composer
+        if (file_exists($path . '/composer.phar')) {
+            exec('php ' . $path . '/composer.phar self-update');
         } else {
-            if (!file_exists("$tmpDir/composer.phar")) {
-                if (!file_exists("$tmpDir/composer_installer.php")) {
+            if (!file_exists($tmpDir . '/composer.phar')) {
+                if (!file_exists($tmpDir . '/composer_installer.php')) {
                     file_put_contents(
-                        "$tmpDir/composer_installer.php",
-                        '?>' . file_get_contents('https://getcomposer.org/installer')
+                        $tmpDir . '/composer_installer.php',
+                        '?>' . file_get_contents(
+                            'https://getcomposer.org/installer'
+                        )
                     );
                 }
-                exec("php $tmpDir/composer_installer.php --install-dir $tmpDir");
+                exec(
+                    'php ' . $tmpDir . '/composer_installer.php --install-dir '
+                    . $tmpDir
+                );
             }
-            copy("$tmpDir/composer.phar", "$path/composer.phar");
+            copy($tmpDir . '/composer.phar', $path . '/composer.phar');
         }
-        chmod("$path/composer.phar", 0755);
-        $console->writeLine("ZF2 skeleton application installed in $path.", Color::GREEN);
-        $console->writeLine("In order to execute the skeleton application you need to install the ZF2 library.");
-        $console->writeLine("Execute: \"composer.phar install\" in $path");
-        $console->writeLine("For more info in $path/README.md");
-    }
+        chmod($path . '/composer.phar', 0755);
 
-    public function controllerAction()
-    {
-        $console = $this->getServiceLocator()->get('console');
-        $tmpDir  = sys_get_temp_dir();
-        $request = $this->getRequest();
-        $name    = $request->getParam('name');
-        $module  = $request->getParam('module');
-        $path    = $request->getParam('path', '.');
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
 
-        if (!file_exists("$path/module") || !file_exists("$path/config/application.config.php")) {
-            return $this->sendError(
-                "The path $path doesn't contain a ZF2 application. I cannot create a module here."
-            );
-        }
-        if (file_exists("$path/module/$module/src/$module/Controller/$name")) {
-            return $this->sendError(
-                "The controller $name already exists in module $module."
-            );
-        }
+        $this->console->write('ZF2 skeleton application installed in ');
+        $this->console->writeLine(realpath($path), Color::GREEN);
+        $this->console->writeLine();
 
-        $ucName     = ucfirst($name);
-        $ctrlPath   = $path . '/module/' . $module . '/src/' . $module . '/Controller/' . $ucName.'Controller.php';
-        $controller = $ucName . 'Controller';
+        $this->console->writeLine('       => In order to execute the skeleton application you need to install the ZF2 library.');
 
-        $code = new Generator\ClassGenerator();
-        $code->setNamespaceName(ucfirst($module) . '\Controller')
-             ->addUse('Zend\Mvc\Controller\AbstractActionController')
-             ->addUse('Zend\View\Model\ViewModel');
+        $this->console->write('       => Execute: ');
+        $this->console->write('composer.phar install', Color::GREEN);
+        $this->console->write(' in ');
+        $this->console->writeLine(realpath($path), Color::GREEN);
 
-        $code->setName($controller)
-             ->addMethods(array(
-                new Generator\MethodGenerator(
-                    'indexAction',
-                    array(),
-                    Generator\MethodGenerator::FLAG_PUBLIC,
-                    'return new ViewModel();'
-                ),
-             ))
-             ->setExtendedClass('AbstractActionController');
+        $this->console->write('       => For more info please read ');
+        $this->console->writeLine(realpath($path) . '/README.md', Color::GREEN);
 
-        $file = new Generator\FileGenerator(
-            array(
-                'classes'  => array($code),
-            )
-        );
+        // output footer
+        $this->consoleFooter('project was successfully created');
 
-        $filter = new CamelCaseToDashFilter();
-        $viewfolder = strtolower($filter->filter($module));
-
-        $dir = $path . "/module/$module/view/$viewfolder/" . strtolower($filter->filter($name));
-        if (!file_exists($dir)) {
-            mkdir($dir, 0777, true);
-        }
-
-        $phtml = false;
-        $phtmlPath = $dir . "/index.phtml";
-        if (file_put_contents($phtmlPath, 'Action "index", controller "'.$ucName.'", module "'.$module.'".')) {
-            $phtml = true;
-        }
-
-        if (file_put_contents($ctrlPath, $file->generate()) && $phtml == true) {
-            $console->writeLine("The controller $name has been created in module $module.", Color::GREEN);
-        } else {
-            $console->writeLine("There was an error during controller creation.", Color::RED);
-        }
-    }
-
-    public function methodAction()
-    {
-        $console        = $this->getServiceLocator()->get('console');
-        $request        = $this->getRequest();
-        $action         = $request->getParam('name');
-        $controller     = $request->getParam('controllerName');
-        $module         = $request->getParam('module');
-        $path           = $request->getParam('path', '.');
-        $ucController   = ucfirst($controller);
-        $controllerPath = sprintf('%s/module/%s/src/%s/Controller/%sController.php', $path, $module, $module, $ucController);
-        $class          = sprintf('%s\\Controller\\%sController', $module, $ucController);
-
-
-        $console->writeLine("Creating action '$action' in controller '$module\\Controller\\$controller'.", Color::YELLOW);
-
-        if (!file_exists("$path/module") || !file_exists("$path/config/application.config.php")) {
-            return $this->sendError(
-                "The path $path doesn't contain a ZF2 application. I cannot create a controller action."
-            );
-        }
-        if (!file_exists($controllerPath)) {
-            return $this->sendError(
-                "The controller $controller does not exists in module $module. I cannot create a controller action."
-            );
-        }
-
-        $fileReflection  = new Reflection\FileReflection($controllerPath, true);
-        $classReflection = $fileReflection->getClass($class);
-
-        $classGenerator = Generator\ClassGenerator::fromReflection($classReflection);
-        $classGenerator->addUse('Zend\Mvc\Controller\AbstractActionController')
-                       ->addUse('Zend\View\Model\ViewModel')
-                       ->setExtendedClass('AbstractActionController');
-
-        if ($classGenerator->hasMethod($action . 'Action')) {
-            return $this->sendError(
-                "The action $action already exists in controller $controller of module $module."
-            );
-        }
-
-        $classGenerator->addMethods(array(
-            new Generator\MethodGenerator(
-                $action . 'Action',
-                array(),
-                Generator\MethodGenerator::FLAG_PUBLIC,
-                'return new ViewModel();'
-            ),
-        ));
-
-        $fileGenerator = new Generator\FileGenerator(
-            array(
-                'classes'  => array($classGenerator),
-            )
-        );
-
-        $filter    = new CamelCaseToDashFilter();
-        $phtmlPath = sprintf(
-            '%s/module/%s/view/%s/%s/%s.phtml',
-            $path,
-            $module,
-            strtolower($filter->filter($module)),
-            strtolower($filter->filter($controller)),
-            strtolower($filter->filter($action))
-        );
-        if (!file_exists($phtmlPath)) {
-            $contents = sprintf("Module: %s\nController: %s\nAction: %s", $module, $controller, $action);
-            if (file_put_contents($phtmlPath, $contents)) {
-                $console->writeLine(sprintf("Created view script at %s", $phtmlPath), Color::GREEN);
-            } else {
-                $console->writeLine(sprintf("An error occurred when attempting to create view script at location %s", $phtmlPath), Color::RED);
-            }
-        }
-
-        if (file_put_contents($controllerPath, $fileGenerator->generate())) {
-            $console->writeLine(sprintf('The action %s has been created in controller %s\\Controller\\%s.', $action, $module, $controller), Color::GREEN);
-        } else {
-            $console->writeLine("There was an error during action creation.", Color::RED);
-        }
-    }
-
-    public function moduleAction()
-    {
-        $console = $this->getServiceLocator()->get('console');
-        $tmpDir  = sys_get_temp_dir();
-        $request = $this->getRequest();
-        $name    = $request->getParam('name');
-        $path    = rtrim($request->getParam('path'), '/');
-
-        if (empty($path)) {
-            $path = '.';
-        }
-
-        if (!file_exists("$path/module") || !file_exists("$path/config/application.config.php")) {
-            return $this->sendError(
-                "The path $path doesn't contain a ZF2 application. I cannot create a module here."
-            );
-        }
-        if (file_exists("$path/module/$name")) {
-            return $this->sendError(
-                "The module $name already exists."
-            );
-        }
-
-        $filter = new CamelCaseToDashFilter();
-        $viewfolder = strtolower($filter->filter($name));
-
-        $name = ucfirst($name);
-        mkdir("$path/module/$name/config", 0777, true);
-        mkdir("$path/module/$name/src/$name/Controller", 0777, true);
-        mkdir("$path/module/$name/view/$viewfolder", 0777, true);
-
-        // Create the Module.php
-        file_put_contents("$path/module/$name/Module.php", Skeleton::getModule($name));
-
-        // Create the module.config.php
-        file_put_contents("$path/module/$name/config/module.config.php", Skeleton::getModuleConfig($name));
-
-        // Add the module in application.config.php
-        $application = require "$path/config/application.config.php";
-        if (!in_array($name, $application['modules'])) {
-            $application['modules'][] = $name;
-            copy ("$path/config/application.config.php", "$path/config/application.config.old");
-            $content = <<<EOD
-<?php
-/**
- * Configuration file generated by ZFTool
- * The previous configuration file is stored in application.config.old
- *
- * @see https://github.com/zendframework/ZFTool
- */
-
-EOD;
-
-            $content .= 'return '. Skeleton::exportConfig($application) . ";\n";
-            file_put_contents("$path/config/application.config.php", $content);
-        }
-        if ($path === '.') {
-            $console->writeLine("The module $name has been created", Color::GREEN);
-        } else {
-            $console->writeLine("The module $name has been created in $path", Color::GREEN);
-        }
     }
 
     /**
-     * Send an error message to the console
+     * Create a project help
+     */
+    public function projectHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a new project with the SkeletonApplication', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create project <path>',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <path> ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Path of the project to be created.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
+     * Create a controller
      *
-     * @param  string $msg
      * @return ConsoleModel
      */
-    protected function sendError($msg)
+    public function controllerAction()
     {
-        $m = new ConsoleModel();
-        $m->setErrorLevel(2);
-        $m->setResult($msg . PHP_EOL);
-        return $m;
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->controllerHelp();
+        }
+
+        // output header
+        $this->consoleHeader('Creating new controller');
+
+        // get needed options to shorten code
+        $path               = $this->requestOptions->getPath();
+        $flagWithFactory    = $this->requestOptions->getFlagWithFactory();
+        $moduleName         = $this->requestOptions->getModuleName();
+        $modulePath         = $this->requestOptions->getModulePath();
+        $controllerName     = $this->requestOptions->getControllerName();
+        $controllerPath     = $this->requestOptions->getControllerPath();
+        $controllerClass    = $this->requestOptions->getControllerClass();
+        $controllerFile     = $this->requestOptions->getControllerFile();
+        $controllerViewPath = $this->requestOptions->getControllerViewPath();
+        $actionViewFile     = $this->requestOptions->getActionViewFile();
+
+        // check for module path and application config
+        if (!file_exists($path . '/module')
+            || !file_exists($path . '/config/application.config.php')
+        ) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The path '),
+                    array(Color::RED    => $path),
+                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if controller name provided
+        if (!$controllerName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the controller name as parameter.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
+                )
+            );
+        }
+
+        // check if controller exists already in module
+        if (file_exists($controllerPath . $controllerFile)) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The controller '),
+                    array(Color::RED    => $controllerName),
+                    array(Color::NORMAL => ' already exists in module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => '.'),
+                )
+            );
+        }
+
+        // write start message
+        $this->console->write('       => Creating controller ');
+        $this->console->write ($controllerName, Color::GREEN);
+        $this->console->write(' in module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // create controller class
+        $controllerFlag = $this->moduleGenerator->createController();
+
+        // write start message
+        $this->console->write('       => Creating view script ');
+        $this->console->write ($actionViewFile, Color::GREEN);
+        $this->console->write(' in ');
+        $this->console->writeLine($controllerViewPath, Color::GREEN);
+
+        // create view script
+        $viewScriptFlag = $this->moduleGenerator->createViewScript();
+
+        // write start message
+        $this->console->write('       => Adding controller configuration for ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // add controller configuration to module
+        $moduleConfig = $this->moduleConfigurator->addControllerConfig();
+
+        // check for factory flag
+        if ($flagWithFactory) {
+            // create controller factory class
+            $factoryFlag = $this->moduleGenerator->createControllerFactory();
+
+            // write start message
+            $this->console->write('       => Creating factory for controller ');
+            $this->console->write ($controllerName, Color::GREEN);
+            $this->console->write(' in module ');
+            $this->console->writeLine($moduleName, Color::GREEN);
+
+            // add controller factory configuration to module
+            $moduleConfig = $this->moduleConfigurator->addControllerFactoryConfig();
+        } else {
+            $factoryFlag = false;
+        }
+
+        // check for module config updates
+        if ($moduleConfig) {
+            // update module configuration
+            $this->moduleGenerator->updateConfiguration(
+                $moduleConfig, $modulePath . '/config/module.config.php'
+            );
+
+            // write start message
+            $this->console->write('       => Updating configuration for module ');
+            $this->console->writeLine($moduleName, Color::GREEN);
+        }
+
+        $this->console->writeLine();
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+
+        // write message
+        if ($factoryFlag) {
+            $this->console->write('The controller ');
+            $this->console->write($controllerName, Color::GREEN);
+            $this->console->write(' has been created with a factory in module ');
+            $this->console->writeLine($moduleName, Color::GREEN);
+        } else {
+            $this->console->write('The controller ');
+            $this->console->write($controllerName, Color::GREEN);
+            $this->console->write(' has been created in module ');
+            $this->console->writeLine($moduleName, Color::GREEN);
+        }
+
+        // output footer
+        $this->consoleFooter('controller was successfully created');
+
     }
+
+    /**
+     * Create a controller help
+     */
+    public function controllerHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a new controller within an module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create controller <controller_name> <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <controller_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of controller to be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <module_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Module in which controller should be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]           ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --factory|-f       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Create a factory for the controller.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --ignore|-i        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Ignore coding conventions.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --config|-c        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent that module configuration is updated.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --apidocs|-a       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent the api doc block generation.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
+     * Create a controller factory
+     *
+     * @return ConsoleModel
+     */
+    public function controllerFactoryAction()
+    {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->controllerFactoryHelp();
+        }
+
+        // output header
+        $this->consoleHeader('Creating new controller factory');
+
+        // get needed options to shorten code
+        $path               = $this->requestOptions->getPath();
+        $moduleName         = $this->requestOptions->getModuleName();
+        $modulePath         = $this->requestOptions->getModulePath();
+        $controllerName     = $this->requestOptions->getControllerName();
+        $controllerPath     = $this->requestOptions->getControllerPath();
+        $controllerClass    = $this->requestOptions->getControllerClass();
+        $controllerFile     = $this->requestOptions->getControllerFile();
+
+        // check for module path and application config
+        if (!file_exists($path . '/module')
+            || !file_exists($path . '/config/application.config.php')
+        ) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The path '),
+                    array(Color::RED    => $path),
+                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if controller name provided
+        if (!$controllerName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the controller name as parameter.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
+                )
+            );
+        }
+
+        // check if controller exists already in module
+        if (!file_exists($controllerPath . $controllerFile)) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The controller '),
+                    array(Color::RED    => $controllerName),
+                    array(Color::NORMAL => ' does not exist in module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => '.'),
+                )
+            );
+        }
+
+        // write start message
+        $this->console->write('       => Creating controller factory for ');
+        $this->console->write ($controllerName, Color::GREEN);
+        $this->console->write(' in module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // create controller factory class
+        try {
+            $factoryFlag = $this->moduleGenerator->createControllerFactory();
+        } catch (GeneratorException $e) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The factory for the controller '),
+                    array(Color::RED    => $controllerName),
+                    array(Color::NORMAL => ' of module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => ' exists already.'),
+                )
+            );
+        }
+
+        // write start message
+        $this->console->write('       => Updating controller configuration for ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // add controller factory configuration to module
+        $moduleConfig = $this->moduleConfigurator->addControllerFactoryConfig();
+
+        // check for module config updates
+        if ($moduleConfig) {
+            // update module configuration
+            $this->moduleGenerator->updateConfiguration(
+                $moduleConfig, $modulePath . '/config/module.config.php'
+            );
+        }
+
+        $this->console->writeLine();
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+
+        // write message
+        $this->console->write('The factory for controller ');
+        $this->console->write($controllerName, Color::GREEN);
+        $this->console->write(' has been created in module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // output footer
+        $this->consoleFooter('controller factory was successfully created');
+
+    }
+
+    /**
+     * Create a controller factory help
+     */
+    public function controllerFactoryHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a factory for controller within an module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create controller-factory <controller_name> <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <controller_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of controller the factory has to be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <module_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Module in which the controller factory should be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]           ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --config|-c        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent that module configuration is updated.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --apidocs|-a       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent the api doc block generation.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+    }
+
+    /**
+     * Create an action method
+     *
+     * @return ConsoleModel
+     */
+    public function methodAction()
+    {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->methodHelp();
+        }
+
+        // output header
+        $this->consoleHeader('Creating new action');
+
+        // get needed options to shorten code
+        $path               = $this->requestOptions->getPath();
+        $moduleName         = $this->requestOptions->getModuleName();
+        $controllerName     = $this->requestOptions->getControllerName();
+        $controllerPath     = $this->requestOptions->getControllerPath();
+        $controllerClass    = $this->requestOptions->getControllerClass();
+        $controllerFile     = $this->requestOptions->getControllerFile();
+        $controllerViewPath = $this->requestOptions->getControllerViewPath();
+        $actionName         = $this->requestOptions->getActionName();
+        $actionViewFile     = $this->requestOptions->getActionViewFile();
+
+        // check for module path and application config
+        if (!file_exists($path . '/module')
+            || !file_exists($path . '/config/application.config.php')
+        ) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The path '),
+                    array(Color::RED    => $path),
+                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if action name provided
+        if (!$actionName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the action name as parameter.'),
+                )
+            );
+        }
+
+        // check if controller name provided
+        if (!$controllerName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the controller name as parameter.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
+                )
+            );
+        }
+
+        // check if controller exists already in module
+        if (!file_exists($controllerPath . $controllerFile)) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The controller '),
+                    array(Color::RED    => $controllerName),
+                    array(Color::NORMAL => ' does not exist in module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => '. I cannot create an action here.'),
+                )
+            );
+        }
+
+        // write start message
+        $this->console->write('       => Adding action ');
+        $this->console->write ($actionName, Color::GREEN);
+        $this->console->write(' to controller ');
+        $this->console->write ($controllerName, Color::GREEN);
+        $this->console->write(' in module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // update controller class
+        try {
+            $controllerFlag = $this->moduleGenerator->updateController();
+        } catch (GeneratorException $e) {
+            $this->console->writeLine();
+
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The action '),
+                    array(Color::RED    => $actionName),
+                    array(Color::NORMAL => ' already exists in controller '),
+                    array(Color::RED    => $controllerName),
+                    array(Color::NORMAL => ' of module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => '.'),
+                )
+            );
+        }
+
+        // write start message
+        $this->console->write('       => Creating view script ');
+        $this->console->write ($actionViewFile, Color::GREEN);
+        $this->console->write(' in ');
+        $this->console->writeLine($controllerViewPath, Color::GREEN);
+
+        // create view script
+        $viewScriptFlag = $this->moduleGenerator->createViewScript();
+
+        $this->console->writeLine();
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+
+        // write message
+        $this->console->write('The action ');
+        $this->console->write($actionName, Color::GREEN);
+        $this->console->write(' has been created in controller ');
+        $this->console->write($controllerName, Color::GREEN);
+        $this->console->write(' of module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // output footer
+        $this->consoleFooter('action was successfully created');
+
+    }
+
+    /**
+     * Create an action method help
+     */
+    public function methodHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a new action for a controller within an module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create action <action_name> <controller_name> <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <action_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of action to be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <controller_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of controller in which action should be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       <module_name>      ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Module containing the controller.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]           ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --ignore|-i        ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Ignore coding conventions.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --apidocs|-a       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent the api doc block generation.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
+     * Create a module
+     *
+     * @return ConsoleModel
+     */
+    public function moduleAction()
+    {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->moduleHelp();
+        }
+
+        // output header
+        $this->consoleHeader('Creating new module');
+
+        // get needed options to shorten code
+        $path          = $this->requestOptions->getPath();
+        $moduleName    = $this->requestOptions->getModuleName();
+        $modulePath    = $this->requestOptions->getModulePath();
+        $moduleViewDir = $this->requestOptions->getModuleViewDir();
+
+        // check for module path and application config
+        if (!file_exists($path . '/module')
+            || !file_exists($path . '/config/application.config.php')
+        ) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The path '),
+                    array(Color::RED    => $path),
+                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
+                )
+            );
+        }
+
+        // check if module exists
+        if (file_exists($modulePath)) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => ' already exists.'),
+                )
+            );
+        }
+
+        // write start message
+        $this->console->write('       => Creating module class for module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // Create the Module.php
+        $this->moduleGenerator->createModule();
+
+        // write start message
+        $this->console->write('       => Creating configuration for module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // Create the module.config.php
+        $this->moduleGenerator->createConfiguration();
+
+        // write start message
+        $this->console->write('       => Adding module ');
+        $this->console->write($moduleName, Color::GREEN);
+        $this->console->writeLine(' to application configuration.');
+
+        // add module configuration to application
+        $applicationConfig = $this->moduleConfigurator->addModuleConfig();
+
+        // check for module config updates
+        if ($applicationConfig) {
+            // update module configuration
+            $configFlag = $this->moduleGenerator->updateConfiguration(
+                $applicationConfig, $path . '/config/application.config.php'
+            );
+        }
+
+        $this->console->writeLine();
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+
+        $this->console->write('The module ');
+        $this->console->write($moduleName, Color::GREEN);
+        $this->console->write(' has been created');
+
+        // success
+        if ($path !== '.') {
+            $this->console->write(' in ');
+            $this->console->writeLine($path, Color::GREEN);
+        } else {
+            $this->console->writeLine();
+        }
+
+        // output footer
+        $this->consoleFooter('module was successfully created');
+
+    }
+
+    /**
+     * Create a module help
+     */
+    public function moduleHelp()
+    {
+        // output header
+        $this->consoleHeader('Create a new module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create module <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <module_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of module to be created.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --ignore|-i    ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Ignore coding conventions.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --apidocs|-a   ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Prevent the api doc block generation.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
+    /**
+     * Create the routing for a module
+     *
+     * @return ConsoleModel
+     */
+    public function routingAction()
+    {
+        // check for help mode
+        if ($this->requestOptions->getFlagHelp()) {
+            return $this->routingHelp();
+        }
+
+        // output header
+        $this->consoleHeader('Creating the routing for a module');
+
+        // get needed options to shorten code
+        $path       = $this->requestOptions->getPath();
+        $moduleName = $this->requestOptions->getModuleName();
+        $modulePath = $this->requestOptions->getModulePath();
+
+        // check for module path and application config
+        if (!file_exists($path . '/module')
+            || !file_exists($path . '/config/application.config.php')
+        ) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The path '),
+                    array(Color::RED    => $path),
+                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
+                )
+            );
+        }
+
+        // check if module name provided
+        if (!$moduleName) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
+                )
+            );
+        }
+
+        // check if module exists
+        if (!file_exists($modulePath)) {
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'The module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => ' does not exist.'),
+                )
+            );
+        }
+
+        // write start message
+        $this->console->write('       => Creating routing for module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // set config flag
+        $configFlag = false;
+
+        // update controller class
+        try {
+            // add controller configuration to module
+            $moduleConfig = $this->moduleConfigurator->addRouterConfig();
+
+            // check for module config updates
+            if ($moduleConfig) {
+                // update module configuration
+                $configFlag = $this->moduleGenerator->updateConfiguration(
+                    $moduleConfig, $modulePath . '/config/module.config.php'
+                );
+
+                // success message
+                $this->console->write('       => Updating configuration for module ');
+                $this->console->writeLine($moduleName, Color::GREEN);
+
+                // change flag
+                $configFlag = true;
+            }
+        } catch (GeneratorException $e) {
+            $this->console->writeLine();
+
+            return $this->sendError(
+                array(
+                    array(Color::NORMAL => 'No controller exist in the module '),
+                    array(Color::RED    => $moduleName),
+                    array(Color::NORMAL => '.'),
+                )
+            );
+        }
+
+        $this->console->writeLine();
+        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
+        $this->console->write(' ');
+
+        $this->console->write('The routing has been configured in module ');
+        $this->console->writeLine($moduleName, Color::GREEN);
+
+        // output footer
+        $this->consoleFooter('routing was successfully created');
+
+    }
+
+    /**
+     * Create the routing for a module help
+     */
+    public function routingHelp()
+    {
+        // output header
+        $this->consoleHeader('Create the routing for a module', ' Help ');
+
+        $this->console->writeLine(
+            '       zf.php create routing <module_name> [<path>] [options]',
+            Color::GREEN
+        );
+
+        $this->console->writeLine();
+
+        $this->console->writeLine('       Parameters:');
+        $this->console->writeLine();
+        $this->console->write(
+            '       <module_name>  ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Name of module to create the routing for.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       [<path>]       ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            '(Optional) path to a ZF2 application.',
+            Color::NORMAL
+        );
+        $this->console->write(
+            '       --single|-s    ',
+            Color::CYAN
+        );
+        $this->console->writeLine(
+            'Create single standard route for the module.',
+            Color::NORMAL
+        );
+
+        // output footer
+        $this->consoleFooter('requested help was successfully displayed');
+
+    }
+
 }

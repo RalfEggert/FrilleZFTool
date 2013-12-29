@@ -57,26 +57,4 @@ class SkeletonTest extends \PHPUnit_Framework_TestCase
         $result = Skeleton::getTmpFileName($path, $commit);
         $this->assertEquals('', $result);
     }
-
-    public function testExportConfig()
-    {
-        $config = array(
-            'foo' => array(
-                'foo2' => 'bar2',
-                'foo3' => 'bar3'
-            ),
-            'bar'
-        );
-        $export = Skeleton::exportConfig($config);
-        $expected = <<<EOD
-array(
-    'foo' => array(
-        'foo2' => 'bar2',
-        'foo3' => 'bar3'
-        ),
-    'bar'
-    )
-EOD;
-        $this->assertEquals($expected, $export);
-    }
 }
