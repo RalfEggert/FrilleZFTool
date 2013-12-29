@@ -43,21 +43,23 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
     public function getConsoleBanner(ConsoleAdapterInterface $console)
     {
         $console->writeLine();
+
         $console->writeLine(
-            str_pad('', $console->getWidth() - 1, ' ', STR_PAD_RIGHT),
-            Color::NORMAL,
+            str_pad('', $console->getWidth() - 1, '=', STR_PAD_RIGHT),
             Color::GREEN
         );
+
+        $console->write('=', Color::GREEN);
+        $console->write(
+            str_pad('' . Module::NAME, $console->getWidth() - 3, ' ', STR_PAD_BOTH)
+        );
+        $console->writeLine('=', Color::GREEN);
+
         $console->writeLine(
-            str_pad(' ' . self::NAME, $console->getWidth() - 1, ' ', STR_PAD_BOTH),
-            Color::NORMAL,
+            str_pad('', $console->getWidth() - 1, '=', STR_PAD_RIGHT),
             Color::GREEN
         );
-        $console->writeLine(
-            str_pad('', $console->getWidth() - 1, ' ', STR_PAD_RIGHT),
-            Color::NORMAL,
-            Color::GREEN
-        );
+
         $console->writeLine();
 
         return 'Usage:';

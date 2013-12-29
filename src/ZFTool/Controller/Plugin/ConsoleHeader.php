@@ -44,21 +44,23 @@ class ConsoleHeader extends AbstractPlugin
     public function __invoke($msg, $badge = '  Go  ')
     {
         $this->console->writeLine();
+
         $this->console->writeLine(
-            str_pad('', $this->width - 1, ' ', STR_PAD_RIGHT),
-            Color::NORMAL,
+            str_pad('', $this->width - 1, '=', STR_PAD_RIGHT),
             Color::GREEN
         );
+
+        $this->console->write('=', Color::GREEN);
+        $this->console->write(
+            str_pad('' . Module::NAME, $this->width - 3, ' ', STR_PAD_BOTH)
+        );
+        $this->console->writeLine('=', Color::GREEN);
+
         $this->console->writeLine(
-            str_pad(' ' . Module::NAME, $this->width - 1, ' ', STR_PAD_BOTH),
-            Color::NORMAL,
+            str_pad('', $this->width - 1, '=', STR_PAD_RIGHT),
             Color::GREEN
         );
-        $this->console->writeLine(
-            str_pad('', $this->width - 1, ' ', STR_PAD_RIGHT),
-            Color::NORMAL,
-            Color::GREEN
-        );
+
         $this->console->writeLine();
 
         $this->console->write($badge, Color::NORMAL, Color::YELLOW);
