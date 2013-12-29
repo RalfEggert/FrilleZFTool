@@ -114,16 +114,6 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
     --config  | -c      Prevent that module configuration is updated
     --apidocs | -a      Prevent the api doc block generation
 
-#### Controller factory creation:
-
-	zf.php create controller-factory <controller_name> <module_name> [<path>] [options]
-
-	<controller_name>   Name of controller the factory has to be created
-	<module_name>       Module in which the controller factory should be created
-	[<path>]            (Optional) path to a ZF2 application
-    --config  | -c      Prevent that module configuration is updated
-    --apidocs | -a      Prevent the api doc block generation
-
 #### Action creation:
 
 	zf.php create action <action_name> <controller_name> <module_name> [<path>] [options]
@@ -152,16 +142,6 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
 	[<path>]            (Optional) path to a ZF2 application
     --factory | -f      Create a factory for the view helper
     --ignore  | -i      Ignore coding conventions
-    --config  | -c      Prevent that module configuration is updated
-    --apidocs | -a      Prevent the api doc block generation
-
-#### View helper factory creation:
-
-	zf.php create view-helper-factory <helper_name> <module_name> [<path>] [options]
-
-	<helper_name>       Name of view helper the factory has to be created
-	<module_name>       Module in which the view helper factory should be created
-	[<path>]            (Optional) path to a ZF2 application
     --config  | -c      Prevent that module configuration is updated
     --apidocs | -a      Prevent the api doc block generation
 

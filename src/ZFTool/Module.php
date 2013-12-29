@@ -111,9 +111,6 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             'Create a controller in module:',
             'create controller <controller_name> <module_name> [<path>] [options]' => '',
 
-            'Create a controller factory in module:',
-            'create controller-factory <controller_name> <module_name> [<path>] [options]' => '',
-
             'Create an action in a controller:',
             'create action <action_name> <controller_name> <module_name> [<path>] [options]' => '',
 
@@ -122,9 +119,6 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
 
             'Create a view helper in module:',
             'create view-helper <helper_name> <module_name> [<path>] [options]' => '',
-
-            'Create a view helper factory in module:',
-            'create view-helper-factory <helper_name> <module_name> [<path>] [options]' => '',
 
             'Generate a Classmap for a directory / module:',
             'generate classmap <directory> [<destination>]' => '',

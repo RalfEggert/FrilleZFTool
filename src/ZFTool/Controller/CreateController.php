@@ -309,8 +309,15 @@ class CreateController extends AbstractActionController
             );
         }
 
-        // check if controller exists already in module
+        // set mode
         if (file_exists($controllerPath . $controllerFile)) {
+            $mode = 'update';
+        } else {
+            $mode = 'insert';
+        }
+
+        // check if controller exists already in module
+        if ($mode == 'update' && !$flagWithFactory) {
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The controller '),
@@ -322,35 +329,50 @@ class CreateController extends AbstractActionController
             );
         }
 
-        // write start message
-        $this->console->write('       => Creating controller ');
-        $this->console->write ($controllerName, Color::GREEN);
-        $this->console->write(' in module ');
-        $this->console->writeLine($moduleName, Color::GREEN);
+        if ($mode == 'insert') {
+            // write start message
+            $this->console->write('       => Creating controller ');
+            $this->console->write ($controllerName, Color::GREEN);
+            $this->console->write(' in module ');
+            $this->console->writeLine($moduleName, Color::GREEN);
 
-        // create controller class
-        $controllerFlag = $this->moduleGenerator->createController();
+            // create controller class
+            $controllerFlag = $this->moduleGenerator->createController();
 
-        // write start message
-        $this->console->write('       => Creating view script ');
-        $this->console->write ($actionViewFile, Color::GREEN);
-        $this->console->write(' in ');
-        $this->console->writeLine($controllerViewPath, Color::GREEN);
+            // write start message
+            $this->console->write('       => Creating view script ');
+            $this->console->write ($actionViewFile, Color::GREEN);
+            $this->console->write(' in ');
+            $this->console->writeLine($controllerViewPath, Color::GREEN);
 
-        // create view script
-        $viewScriptFlag = $this->moduleGenerator->createViewScript();
+            // create view script
+            $viewScriptFlag = $this->moduleGenerator->createViewScript();
 
-        // write start message
-        $this->console->write('       => Adding controller configuration for ');
-        $this->console->writeLine($moduleName, Color::GREEN);
+            // write start message
+            $this->console->write('       => Adding controller configuration for ');
+            $this->console->writeLine($moduleName, Color::GREEN);
 
-        // add controller configuration to module
-        $moduleConfig = $this->moduleConfigurator->addControllerConfig();
+            // add controller configuration to module
+            $moduleConfig = $this->moduleConfigurator->addControllerConfig();
+        }
 
         // check for factory flag
         if ($flagWithFactory) {
+
             // create controller factory class
-            $factoryFlag = $this->moduleGenerator->createControllerFactory();
+            try {
+                $factoryFlag = $this->moduleGenerator->createControllerFactory();
+            } catch (GeneratorException $e) {
+                return $this->sendError(
+                    array(
+                        array(Color::NORMAL => 'The factory for the controller '),
+                        array(Color::RED    => $controllerName),
+                        array(Color::NORMAL => ' of module '),
+                        array(Color::RED    => $moduleName),
+                        array(Color::NORMAL => ' exists already.'),
+                    )
+                );
+            }
 
             // write start message
             $this->console->write('       => Creating factory for controller ');
@@ -475,187 +497,6 @@ class CreateController extends AbstractActionController
         // output footer
         $this->consoleFooter('requested help was successfully displayed');
 
-    }
-
-    /**
-     * Create a controller factory
-     *
-     * @return ConsoleModel
-     */
-    public function controllerFactoryAction()
-    {
-        // check for help mode
-        if ($this->requestOptions->getFlagHelp()) {
-            return $this->controllerFactoryHelp();
-        }
-
-        // output header
-        $this->consoleHeader('Creating new controller factory');
-
-        // get needed options to shorten code
-        $path               = $this->requestOptions->getPath();
-        $moduleName         = $this->requestOptions->getModuleName();
-        $modulePath         = $this->requestOptions->getModulePath();
-        $controllerName     = $this->requestOptions->getControllerName();
-        $controllerPath     = $this->requestOptions->getControllerPath();
-        $controllerClass    = $this->requestOptions->getControllerClass();
-        $controllerFile     = $this->requestOptions->getControllerFile();
-
-        // check for module path and application config
-        if (!file_exists($path . '/module')
-            || !file_exists($path . '/config/application.config.php')
-        ) {
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'The path '),
-                    array(Color::RED    => $path),
-                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
-                )
-            );
-        }
-
-        // check if controller name provided
-        if (!$controllerName) {
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'Please provide the controller name as parameter.'),
-                )
-            );
-        }
-
-        // check if module name provided
-        if (!$moduleName) {
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
-                )
-            );
-        }
-
-        // check if controller exists already in module
-        if (!file_exists($controllerPath . $controllerFile)) {
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'The controller '),
-                    array(Color::RED    => $controllerName),
-                    array(Color::NORMAL => ' does not exist in module '),
-                    array(Color::RED    => $moduleName),
-                    array(Color::NORMAL => '.'),
-                )
-            );
-        }
-
-        // write start message
-        $this->console->write('       => Creating controller factory for ');
-        $this->console->write ($controllerName, Color::GREEN);
-        $this->console->write(' in module ');
-        $this->console->writeLine($moduleName, Color::GREEN);
-
-        // create controller factory class
-        try {
-            $factoryFlag = $this->moduleGenerator->createControllerFactory();
-        } catch (GeneratorException $e) {
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'The factory for the controller '),
-                    array(Color::RED    => $controllerName),
-                    array(Color::NORMAL => ' of module '),
-                    array(Color::RED    => $moduleName),
-                    array(Color::NORMAL => ' exists already.'),
-                )
-            );
-        }
-
-        // write start message
-        $this->console->write('       => Updating controller configuration for ');
-        $this->console->writeLine($moduleName, Color::GREEN);
-
-        // add controller factory configuration to module
-        $moduleConfig = $this->moduleConfigurator->addControllerFactoryConfig();
-
-        // check for module config updates
-        if ($moduleConfig) {
-            // update module configuration
-            $this->moduleGenerator->updateConfiguration(
-                $moduleConfig, $modulePath . '/config/module.config.php'
-            );
-        }
-
-        $this->console->writeLine();
-        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
-        $this->console->write(' ');
-
-        // write message
-        $this->console->write('The factory for controller ');
-        $this->console->write($controllerName, Color::GREEN);
-        $this->console->write(' has been created in module ');
-        $this->console->writeLine($moduleName, Color::GREEN);
-
-        // output footer
-        $this->consoleFooter('controller factory was successfully created');
-
-    }
-
-    /**
-     * Create a controller factory help
-     */
-    public function controllerFactoryHelp()
-    {
-        // output header
-        $this->consoleHeader('Create a factory for controller within an module', ' Help ');
-
-        $this->console->writeLine(
-            '       zf.php create controller-factory <controller_name> <module_name> [<path>] [options]',
-            Color::GREEN
-        );
-
-        $this->console->writeLine();
-
-        $this->console->writeLine('       Parameters:');
-        $this->console->writeLine();
-        $this->console->write(
-            '       <controller_name>  ',
-            Color::CYAN
-        );
-        $this->console->writeLine(
-            'Name of controller the factory has to be created.',
-            Color::NORMAL
-        );
-        $this->console->write(
-            '       <module_name>      ',
-            Color::CYAN
-        );
-        $this->console->writeLine(
-            'Module in which the controller factory should be created.',
-            Color::NORMAL
-        );
-        $this->console->write(
-            '       [<path>]           ',
-            Color::CYAN
-        );
-        $this->console->writeLine(
-            '(Optional) path to a ZF2 application.',
-            Color::NORMAL
-        );
-        $this->console->write(
-            '       --config|-c        ',
-            Color::CYAN
-        );
-        $this->console->writeLine(
-            'Prevent that module configuration is updated.',
-            Color::NORMAL
-        );
-        $this->console->write(
-            '       --apidocs|-a       ',
-            Color::CYAN
-        );
-        $this->console->writeLine(
-            'Prevent the api doc block generation.',
-            Color::NORMAL
-        );
-
-        // output footer
-        $this->consoleFooter('requested help was successfully displayed');
     }
 
     /**
@@ -1227,8 +1068,15 @@ class CreateController extends AbstractActionController
             );
         }
 
-        // check if controller exists already in module
+        // set mode
         if (file_exists($viewHelperPath . $viewHelperFile)) {
+            $mode = 'update';
+        } else {
+            $mode = 'insert';
+        }
+
+        // check if view helper exists already in module
+        if ($mode == 'update' && !$flagWithFactory) {
             return $this->sendError(
                 array(
                     array(Color::NORMAL => 'The view helper '),
@@ -1240,26 +1088,42 @@ class CreateController extends AbstractActionController
             );
         }
 
-        // write start message
-        $this->console->write('       => Creating view helper ');
-        $this->console->write ($viewHelperName, Color::GREEN);
-        $this->console->write(' in module ');
-        $this->console->writeLine($moduleName, Color::GREEN);
+        // create view helper
+        if ($mode == 'insert') {
+            // write start message
+            $this->console->write('       => Creating view helper ');
+            $this->console->write ($viewHelperName, Color::GREEN);
+            $this->console->write(' in module ');
+            $this->console->writeLine($moduleName, Color::GREEN);
 
-        // create controller class
-        $viewHelperFlag = $this->moduleGenerator->createViewHelper();
+            // create view helper class
+            $viewHelperFlag = $this->moduleGenerator->createViewHelper();
 
-        // write start message
-        $this->console->write('       => Adding view helper configuration for ');
-        $this->console->writeLine($moduleName, Color::GREEN);
+            // write start message
+            $this->console->write('       => Adding view helper configuration for ');
+            $this->console->writeLine($moduleName, Color::GREEN);
 
-        // add controller configuration to module
-        $moduleConfig = $this->moduleConfigurator->addViewHelperConfig();
+            // add view helper configuration to module
+            $moduleConfig = $this->moduleConfigurator->addViewHelperConfig();
+        }
 
         // check for factory flag
         if ($flagWithFactory) {
-            // create controller factory class
-            $factoryFlag = $this->moduleGenerator->createViewHelperFactory();
+
+            // create view helper factory class
+            try {
+                $factoryFlag = $this->moduleGenerator->createViewHelperFactory();
+            } catch (GeneratorException $e) {
+                return $this->sendError(
+                    array(
+                        array(Color::NORMAL => 'The factory for the view helper '),
+                        array(Color::RED    => $viewHelperName),
+                        array(Color::NORMAL => ' of module '),
+                        array(Color::RED    => $moduleName),
+                        array(Color::NORMAL => ' exists already.'),
+                    )
+                );
+            }
 
             // write start message
             $this->console->write('       => Creating factory for view helper ');
@@ -1267,7 +1131,7 @@ class CreateController extends AbstractActionController
             $this->console->write(' in module ');
             $this->console->writeLine($moduleName, Color::GREEN);
 
-            // add controller factory configuration to module
+            // add view helper factory configuration to module
             $moduleConfig = $this->moduleConfigurator->addViewHelperFactoryConfig();
         } else {
             $factoryFlag = false;
@@ -1389,187 +1253,4 @@ class CreateController extends AbstractActionController
         $this->consoleFooter('requested help was successfully displayed');
 
     }
-
-    /**
-     * Create a view helper factory
-     *
-     * @return ConsoleModel
-     */
-    public function viewHelperFactoryAction()
-    {
-        // check for help mode
-        if ($this->requestOptions->getFlagHelp()) {
-            return $this->viewHelperFactoryHelp();
-        }
-
-        // output header
-        $this->consoleHeader('Creating new view helper factory');
-
-        // get needed options to shorten code
-        $path               = $this->requestOptions->getPath();
-        $moduleName         = $this->requestOptions->getModuleName();
-        $modulePath         = $this->requestOptions->getModulePath();
-        $viewHelperName     = $this->requestOptions->getViewHelperName();
-        $viewHelperPath     = $this->requestOptions->getViewHelperPath();
-        $viewHelperClass    = $this->requestOptions->getViewHelperClass();
-        $viewHelperFile     = $this->requestOptions->getViewHelperFile();
-
-        // check for module path and application config
-        if (!file_exists($path . '/module')
-            || !file_exists($path . '/config/application.config.php')
-        ) {
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'The path '),
-                    array(Color::RED    => $path),
-                    array(Color::NORMAL => ' doesn\'t contain a ZF2 application.'),
-                )
-            );
-        }
-
-        // check if controller name provided
-        if (!$viewHelperName) {
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'Please provide the view helper name as parameter.'),
-                )
-            );
-        }
-
-        // check if module name provided
-        if (!$moduleName) {
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'Please provide the module name as parameter.'),
-                )
-            );
-        }
-
-        // check if controller exists already in module
-        if (!file_exists($viewHelperPath . $viewHelperFile)) {
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'The view helper '),
-                    array(Color::RED    => $viewHelperName),
-                    array(Color::NORMAL => ' does not exist in module '),
-                    array(Color::RED    => $moduleName),
-                    array(Color::NORMAL => '.'),
-                )
-            );
-        }
-
-        // write start message
-        $this->console->write('       => Creating view helper factory for ');
-        $this->console->write ($viewHelperName, Color::GREEN);
-        $this->console->write(' in module ');
-        $this->console->writeLine($moduleName, Color::GREEN);
-
-        // create controller factory class
-        try {
-            $factoryFlag = $this->moduleGenerator->createViewHelperFactory();
-        } catch (GeneratorException $e) {
-            $this->console->writeLine();
-            return $this->sendError(
-                array(
-                    array(Color::NORMAL => 'The factory for the view helper '),
-                    array(Color::RED    => $viewHelperName),
-                    array(Color::NORMAL => ' of module '),
-                    array(Color::RED    => $moduleName),
-                    array(Color::NORMAL => ' exists already.'),
-                )
-            );
-        }
-
-        // write start message
-        $this->console->write('       => Updating view helper configuration for ');
-        $this->console->writeLine($moduleName, Color::GREEN);
-
-        // add controller factory configuration to module
-        $moduleConfig = $this->moduleConfigurator->addViewHelperFactoryConfig();
-
-        // check for module config updates
-        if ($moduleConfig) {
-            // update module configuration
-            $this->moduleGenerator->updateConfiguration(
-                $moduleConfig, $modulePath . '/config/module.config.php'
-            );
-        }
-
-        $this->console->writeLine();
-        $this->console->write(' Done ', Color::NORMAL, Color::CYAN);
-        $this->console->write(' ');
-
-        // write message
-        $this->console->write('The factory for view helper ');
-        $this->console->write($viewHelperName, Color::GREEN);
-        $this->console->write(' has been created in module ');
-        $this->console->writeLine($moduleName, Color::GREEN);
-
-        // output footer
-        $this->consoleFooter('view helper factory was successfully created');
-
-    }
-
-    /**
-     * Create a view helper factory help
-     */
-    public function viewHelperFactoryHelp()
-    {
-        // output header
-        $this->consoleHeader('Create a factory for view helper within an module', ' Help ');
-
-        $this->console->writeLine(
-            '       zf.php create view-helper-factory <helper_name> <module_name> [<path>] [options]',
-            Color::GREEN
-        );
-
-        $this->console->writeLine();
-
-        $this->console->writeLine('       Parameters:');
-        $this->console->writeLine();
-        $this->console->write(
-            '       <helper_name>  ',
-            Color::CYAN
-        );
-        $this->console->writeLine(
-            'Name of view helper the factory has to be created.',
-            Color::NORMAL
-        );
-        $this->console->write(
-            '       <module_name>      ',
-            Color::CYAN
-        );
-        $this->console->writeLine(
-            'Module in which the view helper factory should be created.',
-            Color::NORMAL
-        );
-        $this->console->write(
-            '       [<path>]           ',
-            Color::CYAN
-        );
-        $this->console->writeLine(
-            '(Optional) path to a ZF2 application.',
-            Color::NORMAL
-        );
-        $this->console->write(
-            '       --config|-c        ',
-            Color::CYAN
-        );
-        $this->console->writeLine(
-            'Prevent that module configuration is updated.',
-            Color::NORMAL
-        );
-        $this->console->write(
-            '       --apidocs|-a       ',
-            Color::CYAN
-        );
-        $this->console->writeLine(
-            'Prevent the api doc block generation.',
-            Color::NORMAL
-        );
-
-        // output footer
-        $this->consoleFooter('requested help was successfully displayed');
-    }
-
 }
