@@ -92,9 +92,6 @@ class Module implements ConsoleUsageProviderInterface, AutoloaderProviderInterfa
             'Show all actions for a controller in a module',
             'actions <module_name> <controller_name> [<path>]' => '',
 
-            'Run diagnostics:',
-            'diag [<test_group_name>] [options]' => '',
-
             'List all configuration options:',
             'config list [<path>] [options]' => '',
 

@@ -23,7 +23,6 @@ It runs from the command line and can be installed as ZF2 module or as PHAR (see
    * a new view helper (optional add configuration and a factory)
    * basic routing for a module
  * Generate classmap and change `Module.php` to use it
- * [Application diagnostics](docs/DIAGNOSTICS.md)
 
 ## Requirements
  * Zend Framework 2.0.0 or later.
@@ -74,16 +73,6 @@ You can also generate the zftool.phar using the `bin/create-phar` command as rep
     <module_name>       Name of module
     <controller_name>   Name of controller
     [<path>]            (Optional) path to a ZF2 application
-
-### Diagnostics
-
-    zf.php diag [<test_group_name>] [options]
-
-    [<test_group_name>] (Optional) name of module to test
-    --verbose | -v      Display detailed information.
-    --break   | -b      Stop testing on first failure.
-    --quiet   | -q      Do not display any output unless an error occurs.
-    --debug   | -d      Display raw debug info from tests.
 
 ### Creation
 

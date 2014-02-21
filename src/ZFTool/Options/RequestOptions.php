@@ -194,7 +194,7 @@ class RequestOptions extends AbstractOptions
      */
     protected $path;
     /**
-     * Test group name for diagnostics
+     * Test group name
      *
      * @var string
      */

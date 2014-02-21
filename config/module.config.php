@@ -11,7 +11,6 @@ return array(
             'ZFTool\Controller\Generate'    => 'ZFTool\Controller\GenerateControllerFactory',
             'ZFTool\Controller\Config'      => 'ZFTool\Controller\ConfigControllerFactory',
             'ZFTool\Controller\Create'      => 'ZFTool\Controller\CreateControllerFactory',
-            'ZFTool\Controller\Diagnostics' => 'ZFTool\Controller\DiagnosticsControllerFactory',
             'ZFTool\Controller\Info'        => 'ZFTool\Controller\InfoControllerFactory',
             'ZFTool\Controller\Install'     => 'ZFTool\Controller\InstallControllerFactory',
         ),
@@ -31,12 +30,6 @@ return array(
             'ZFTool\Generator\ModuleConfigurator' => 'ZFTool\Generator\ModuleConfiguratorFactory',
             'ZFTool\Generator\ModuleGenerator'    => 'ZFTool\Generator\ModuleGeneratorFactory',
         ),
-    ),
-
-    'view_manager' => array(
-        'template_map' => array(
-            'zf-tool/diagnostics/run' => __DIR__ . '/../view/diagnostics/run.phtml',
-        )
     ),
 
     'console' => array(
@@ -186,22 +179,8 @@ return array(
                         ),
                     ),
                 ),
-                'zftool-diagnostics' => array(
-                    'options' => array(
-                        'route'    => '(diagnostics|diag) [-v|--verbose]:verbose [-d|--debug]:debug [-q|--quiet]:quiet [-b|--break]:break [<testGroupName>] [--help|-h]:help',
-                        'defaults' => array(
-                            'controller' => 'ZFTool\Controller\Diagnostics',
-                            'action'     => 'run',
-                        ),
-                    ),
-                ),
             ),
         ),
     ),
 
-    'diagnostics' => array(
-        'ZF' => array(
-            'PHP Version' => array('ZFTool\Diagnostics\Test\PhpVersion', '5.3.3'),
-        )
-    ),
 );
