@@ -23,6 +23,7 @@ It runs from the command line and can be installed as ZF2 module or as PHAR (see
    * a new view helper (optional add configuration and a factory)
    * basic routing for a module
  * Generate classmap and change `Module.php` to use it
+ * Diagnostics moved to https://github.com/zendframework/ZendDiagnostics
 
 ## Requirements
  * Zend Framework 2.0.0 or later.
